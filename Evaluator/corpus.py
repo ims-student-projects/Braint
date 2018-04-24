@@ -1,6 +1,6 @@
 from itertools import zip_longest
 
-import Tweet
+import tweet
 
 class Corpus(object):
 

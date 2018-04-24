@@ -1,4 +1,4 @@
-import Corpus
+import corpus
 
 def main():
     file_tweets = "/Users/marina/Documents/Master/2018_SS/TeamLab/iest/trial.csv"
