@@ -68,3 +68,4 @@ class Corpus(object):
                 A tweet object.
         """
         return self.__corpus[i]
+
