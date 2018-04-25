@@ -2,7 +2,7 @@ class Tweet(object):
     """ A datastructure to represent a tweet object.
     """
 
-    def __init__(self, String: text, String: gold_label=None, String: pred_label=None):
+    def __init__(self, text : str, gold_label=None : str, pred_label=None : str):
         """ Inits Tweet.
 
             Args:
@@ -38,7 +38,7 @@ class Tweet(object):
         """
         return self.__gold_label
 
-    def set_pred_label(self, String: pred_label):
+    def set_pred_label(self, pred_label : str):
         """ Sets the predicted label of this tweet.
 
             Args: 
