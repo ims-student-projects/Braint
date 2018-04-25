@@ -1,6 +1,4 @@
-from itertools import zip_longest
-
-import tweet
+from tweet import Tweet
 
 class Corpus(object):
     """ A datastructure to store Tweet objects.
@@ -18,7 +16,7 @@ class Corpus(object):
             (e.g. The first line of the gold label file contains the label for the tweet on the first line of the other file).
     """
 
-    def __init__(self, filename_tweets=None, filename_gold_labels=None):
+    def __init__(self, String: filename_tweets=None, String: filename_gold_labels=None):
         """ Inits the Corpus.
 
             Args:
@@ -40,17 +38,19 @@ class Corpus(object):
             self.__curr += 1
             return self.get_ith(self.__curr - 1)
 
-    def __read_files(self, filename_tweets, filename_gold_labels):
-        #TO DO: add some exception handling?
+    def __read_files(self, String: filename_tweets, String: filename_gold_labels):
         with open (filename_tweets, 'r') as tweet_file, \
             open (filename_gold_labels) as gold_label_file:
-            for tweet, gold_label in zip_longest(tweet_file, gold_label_file):
+    
+            assert len(tweet_file) == len(gold_label_file), "File lengths do not match"
+            
+            for tweet, gold_label in zip(tweet_file, gold_label_file):
                 linesplit = tweet.split('\t')
                 pred_label = linesplit[0].strip()
                 text = linesplit[1].strip()
                 gold_label = gold_label.strip()
 
-                tweet_obj = Tweet.Tweet(text, gold_label, pred_label)
+                tweet_obj = Tweet(text, gold_label, pred_label)
                 self.append(tweet_obj)
 
     def length(self):
@@ -61,7 +61,7 @@ class Corpus(object):
         """
         return len(self.__corpus)
 
-    def get_ith(self, i):
+    def get_ith(self, int: i):
         """ Gets the ith tweet in this corpus.
 
             Return:
@@ -69,7 +69,7 @@ class Corpus(object):
         """
         return self.__corpus[i]
 
-    def append(self, tweet_obj, pos=None):
+    def append(self, Tweet: tweet_obj, int: pos=None):
         """ Adds an tweet object to this corpus. 
             Unless otherwise specified the tweets is appended at the end.
 
