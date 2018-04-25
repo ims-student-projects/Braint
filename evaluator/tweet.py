@@ -2,7 +2,7 @@ class Tweet(object):
     """ A datastructure to represent a tweet object.
     """
 
-    def __init__(self, text : str, gold_label=None : str, pred_label=None : str):
+    def __init__(self, text : str, gold_label:str=None, pred_label:str=None):
         """ Inits Tweet.
 
             Args:
@@ -17,7 +17,7 @@ class Tweet(object):
     def get_text(self):
         """ Gets the text of this tweet.
 
-            Returns: 
+            Returns:
                 The tweet text as a String.
         """
         return self.__text
@@ -25,7 +25,7 @@ class Tweet(object):
     def get_pred_label(self):
         """ Gets the predicted label of this tweet.
 
-            Returns: 
+            Returns:
                 The predicted label as a String.
         """
         return self.__pred_label
@@ -33,7 +33,7 @@ class Tweet(object):
     def get_gold_label(self):
         """ Gets the gold label of this tweet.
 
-            Returns: 
+            Returns:
                 The gold label as a String.
         """
         return self.__gold_label
@@ -41,7 +41,7 @@ class Tweet(object):
     def set_pred_label(self, pred_label : str):
         """ Sets the predicted label of this tweet.
 
-            Args: 
+            Args:
                 pred_label: the predicted label for this tweet as a string.
         """
         self.__pred_label = pred_label
@@ -50,9 +50,9 @@ class Tweet(object):
         """ Generates a string representation of this tewwt object.
 
             Returns:
-                A string representation of this tweet object, 
+                A string representation of this tweet object,
                 containg the tweet text, the predicted label and the gold label.
         """
         return ("Gold Label:" + "\t" + self.get_gold_label() + "\n" +
                 "Predicted Label:" + "\t" + self.get_pred_label() + "\n" +
-                "Text:" + "\t" + self.get_text()) 
+                "Text:" + "\t" + self.get_text())
