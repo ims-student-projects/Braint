@@ -82,8 +82,7 @@ class Scorer():
         """
         bold = '\033[1m'
         unbold = '\033[0m'
-        header = '{}Fmac\tFmic{}\tsupP\tsupR\tdisP\tdisR\tfeaP\tfeaR\tsadP\tsadR\tjoyP\tjoyR\tangP\tangR\n'.format(bold, unbold)
         pr_scores = '\t'.join('{}\t{}'.format(round(self.precision[l],2), round(self.recall[l],2)) for l in self.labels)
         all_scores = '{}{}\t{}{}\t{}'.format(bold, round(self.f_macro,3), round(self.f_micro,3),
             unbold, pr_scores)
-        return header + all_scores
+        return all_scores

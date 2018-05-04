@@ -1,5 +1,6 @@
 from corpus import Corpus
-from scores import Scores
+from scorer import Scorer
+from result import Result
 
 def main():
 
@@ -7,7 +8,9 @@ def main():
     pred_with_tweets = '../data/trial.csv' # predicted labels + tweet text
     mycorpus = Corpus(pred_with_tweets, gold)
     myscores = Scorer(mycorpus)
-    print(myscores)
+    myresult = Result()
+    myresult.show(myscores)
+
 
 if __name__ == "__main__":
     main()
