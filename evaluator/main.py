@@ -4,8 +4,8 @@ from result import Result
 
 def main():
 
-    gold = '../data/trial.labels' # file contains gold labels
     pred_with_tweets = '../data/trial.csv' # predicted labels + tweet text
+    gold = '../data/trial.labels' # file contains gold labels
     mycorpus = Corpus(pred_with_tweets, gold)
     myscores = Scorer(mycorpus)
     myresult = Result()
