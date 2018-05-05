@@ -14,6 +14,8 @@ Fmac	Fmic	supP	supR	disP	disR	feaP	feaR	sadP	sadR	joyP	joyR	angP	angR
 0.048   0.167	0.0	0.0 	0.0  	0.0	 0.0	 0.0	 0.0	 0.0	0.17	 1.0	0.0 	0.0
 ```
 
+(This is a case when a dummy prediction was used. All predictions were "joy".)
+
 ## 2. Usage & Requirements
 + Run with Python3
 + Can be executed with `main.py` (from within the directory `evaluator`), which is meant as an example of usage.
