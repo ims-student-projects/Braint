@@ -4,8 +4,10 @@ from math import log10
 class Featurer():
     """
     Extracts feature vectors for tweets in a corpus. Features are terms in
-    Tweets represented by their tf-idf score. Expected input is an object
-    of type Corpus. This class also uses the class Tokenizer to convert
+    Tweets represented by their tf-idf score. An additional feature named
+    "THETA" is added with a constant value of 1.
+
+    Expected input is an object of type Corpus. This class also uses the class Tokenizer to convert
     tweet text into tokens/terms.
 
     Featurer can be used as a generator to iterate over tweet features.
@@ -61,10 +63,11 @@ class Featurer():
                     self.term_idfs[term] = 1
                 else:
                     self.term_idfs[term] += 1
-
         #  Convert df's into idf's (inverted df)
         for term in self.term_idfs.keys():
             self.term_idfs[term] = log10(self.size / self.term_idfs[term])
+        # Add the Theta as an additional element in the vectors
+        self.term_idfs['THETA'] = 1
 
 
     def get_tf_idf(self, tweet):
@@ -87,6 +90,9 @@ class Featurer():
         tf_idfs = {}
         for term in tfs.keys():
             tf_idfs[term] = tfs[term] * self.term_idfs[term]
+        # Add the Theta as an additional element in the vectors
+        tf_idfs['THETA'] = 1
+
         return tf_idfs
 
 
@@ -94,4 +100,4 @@ class Featurer():
         """
         Returns a list of all features, i.e. all terms in corpus.
         """
-        return self.term_idfs.keys()
+        return list(self.term_idfs.keys())
