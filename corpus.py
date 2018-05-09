@@ -27,6 +27,7 @@ class Corpus(object):
         self.__curr = 0 # counter for iterator
         if filename_tweets and filename_gold_labels:
             self.__read_files(filename_tweets, filename_gold_labels)
+        self.__all_feature_names = []
 
     def __iter__(self):
         return iter(self.__corpus)
@@ -52,6 +53,12 @@ class Corpus(object):
 
                 tweet_obj = Tweet(text, gold_label, pred_label)
                 self.__corpus.append(tweet_obj)
+
+    def set_all_feature_names(self, feature_names):
+        self.__all_feature_names = feature_names
+
+    def get_all_feature_names(self):
+        return self.__all_feature_names
 
     def length(self):
         """ Gets the number of tweets in the corpus.
