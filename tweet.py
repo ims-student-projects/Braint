@@ -13,6 +13,23 @@ class Tweet(object):
         self.__text = text
         self.__pred_label = pred_label
         self.__gold_label = gold_label
+        self.__features = {}
+
+    def set_features(self, features):
+        """ Set the features for this Tweet.
+
+            Args:
+                features: a dictionary which maps from featurenames (strings) to values
+        """
+        self.__features = features
+
+    def get_features(self):
+        """ Returns the features for this Tweet.
+
+            Returns:
+                a dictionary which maps from feature names (strings) to values
+        """
+        return self.__features
 
     def get_text(self):
         """ Gets the text of this tweet.

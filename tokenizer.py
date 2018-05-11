@@ -24,7 +24,7 @@ class Tokenizer():
         return result
                         
     def get_terms(self, text):
-        p =['~', '!', '#', '$', '%', '^', '&', '*', ',', '?','_','*']
+        p =['~', '!', '#', '$', '%', '^', '&', '*', ',', '?','*']
         newStr =''
         i =0
         punc = None
