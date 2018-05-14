@@ -1,8 +1,9 @@
 from operator import itemgetter
 
+from tweet import Tweet
+
 class MulticlassPerceptron(object):
     """ A perceptron for multiclass classification.
-
     """
 
     def __init__(self, classes, feature_names):
@@ -35,7 +36,7 @@ class MulticlassPerceptron(object):
                 # decrease weights of features of example in wrongly predicted class
                 self.weights[prediction][feat] -= 1
     
-    def __predict(self, features):
+    def __predict(self, features, example):
         """ Returns a prediction for the given features.
             Calculate activation for each class and return the class with the highest activation.
 
@@ -54,6 +55,8 @@ class MulticlassPerceptron(object):
             activations.append((c, curr_activation))
         # highest activation in activation[0]
         activations.sort(key=itemgetter(1), reverse=True)
+        # set prediction in tweet
+        example.set_pred_label(activations[0][0])
         return activations[0]
 
     def train(self, num_iterations, examples):
@@ -61,20 +64,21 @@ class MulticlassPerceptron(object):
 
             Args:
                 num_iterations: the number of passes trough the training data
-                examples: a list containg (true_label, tweet_text, dict:feature_names->values)
+                examples: corpus(iterable) containging of Tweets
         """
         for i in range(num_iterations):
             for example in examples:
-                true_label = example[0]
-                tweet_features = example[2] # dict
-                prediction = self.__predict(tweet_features)
+                true_label = example.get_gold_label()
+                tweet_features = example.get_features() # dict
+                print(tweet_features)
+                prediction = self.__predict(tweet_features, example)
                 self.__update_weights(tweet_features, prediction[0], true_label)
-                self.print_prediction(example, prediction)
+                self.__debug_print_prediction(example, prediction)
 
-    def print_prediction(self, example, prediction):
-        print("true label: " + example[0])
-        print("tweet text: " + example[1])
-        print("prediction: ")
+    def __debug_print_prediction(self, example, prediction):
+        print("true label: " + example.get_gold_label())
+        print("tweet text: " + example.get_text())
+        print("prediction: " + example.get_pred_label())
         print(prediction)
 
     def test(self, examples):
