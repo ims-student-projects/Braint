@@ -24,6 +24,8 @@ class FeatureExtractor(object):
                 bow[token] += 1
             else:
                 bow[token] = 1
+        bow['THETA'] = 1
+        self.all_feature_names.add('THETA')
         return bow
     
     def bow_binary(self, text):
@@ -33,6 +35,8 @@ class FeatureExtractor(object):
             self.all_feature_names.add(token)
             if token not in bow:
                 bow[token] = 1
+        bow['THETA'] = 1
+        self.all_feature_names.add('THETA')
         return bow
     
     def bow_freq(self, text):
@@ -46,6 +50,8 @@ class FeatureExtractor(object):
                 bow[token] = 1
         for token in bow:
             bow[token] = bow[token] / len(tokens)
+        bow['THETA'] = 1
+        self.all_feature_names.add('THETA')
         return bow
 
     def extract_features(self, corpus):
