@@ -70,10 +70,8 @@ class MulticlassPerceptron(object):
             for example in examples:
                 true_label = example.get_gold_label()
                 tweet_features = example.get_features() # dict
-                print(tweet_features)
                 prediction = self.__predict(tweet_features, example)
                 self.__update_weights(tweet_features, prediction[0], true_label)
-                self.__debug_print_prediction(example, prediction)
 
     def __debug_print_prediction(self, example, prediction):
         print("true label: " + example.get_gold_label())
@@ -82,7 +80,9 @@ class MulticlassPerceptron(object):
         print(prediction)
 
     def test(self, examples):
-        pass
+        for example in examples:
+            tweet_features = example.get_features() # dict
+            prediction = self.__predict(tweet_features, example)
 
     def save_model(self):
         pass
