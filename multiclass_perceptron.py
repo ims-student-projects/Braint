@@ -51,7 +51,9 @@ class MulticlassPerceptron(object):
         for c in self.classes:
             curr_activation = 0
             for feat in features:
-                curr_activation += self.weights[c][feat] * features[feat]
+                # necessary if test examples contain unseen features - is there a better way to handle this?
+                if feat in self.weights[c]:
+                    curr_activation += self.weights[c][feat] * features[feat]
             activations.append((c, curr_activation))
         # highest activation in activation[0]
         activations.sort(key=itemgetter(1), reverse=True)
