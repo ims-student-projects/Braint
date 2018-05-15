@@ -9,24 +9,28 @@ def main():
     classes = ['joy', 'anger', 'fear', 'surprise', 'disgust', 'sad']
 
     # TRAIN DATA
-    pred_with_tweets = '../data/trial.csv' # predicted labels + tweet text
-    gold = '../data/trial.labels' # file contains gold labels
-    train_corpus = Corpus(pred_with_tweets, gold)
+    #pred_with_tweets = '../data/sample/trial.csv.train_90' # predicted labels + tweet text
+    #gold = '../data/sample/trial.label.train_90' # file contains gold labels
+    #train_corpus = Corpus(pred_with_tweets, gold)
+    gold_with_tweets = '../data/train.csv'
+    train_corpus = Corpus(gold_with_tweets)
 
     # TEST DATA
-    test_tweets = '../data/trial.csv.test_10' # predicted labels + tweet text
-    gold_labels = '../data/trial.label.test_10'
+    #test_tweets = '../data/sample/trial.csv.test_10' # predicted labels + tweet text
+    #gold_labels = '../data/sample/trial.label.test_10'
+    #test_corpus = Corpus(test_tweets, gold_labels)
+    test_tweets = '../data/trial.csv'
+    gold_labels = '../data/trial.labels'
     test_corpus = Corpus(test_tweets, gold_labels)
 
     # Extract features
     feature_extractor = FeatureExtractor()
     feature_extractor.extract_features(train_corpus)
-    feature_names = feature_extractor.get_all_feature_names()
     feature_extractor.extract_features(test_corpus)
 
     # Train classifier
-    classifier = MulticlassPerceptron(classes, feature_names)
-    classifier.train(10, train_corpus)
+    classifier = MulticlassPerceptron(classes, train_corpus.get_all_feature_names())
+    classifier.train(5, train_corpus)
 
     # Test classifier
     classifier.test(test_corpus)
