@@ -4,10 +4,15 @@ class FeatureExtractor(object):
 
     def __init__(self):
         self.all_feature_names = set()
+
+    def __reset_feature_names(self):
+        self.all_feature_names = set()
     
     def get_tokens(self, text: str):
         tokens = text.split()
-        # TODO:
+        # lowercase all tokens
+        # tokens = [w.lower() for w in tokens]
+        # TODO
         # remove punctuation
         # remove non-alphabetical tokens
         # filter stop words
@@ -56,11 +61,8 @@ class FeatureExtractor(object):
 
     def extract_features(self, corpus):
         for tweet in corpus:
-            #tweet.set_features(self.bow_binary(tweet.get_text()))
+            tweet.set_features(self.bow_binary(tweet.get_text()))
             #tweet.set_features(self.bow_counts(tweet.get_text()))
-            tweet.set_features(self.bow_freq(tweet.get_text()))
-        
-    
-
-    def get_all_feature_names(self):
-        return list(self.all_feature_names)
+            #tweet.set_features(self.bow_freq(tweet.get_text()))
+        corpus.set_all_feature_names(list(self.all_feature_names))
+        self.__reset_feature_names()
