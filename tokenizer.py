@@ -9,18 +9,18 @@ class Tokenizer():
         result = []
         for token in tokens:
             if token.isalpha():
-                result.append(token.lower())
+                result.append(token)
             else:
                 new_token=""
                 for char in token:
                     if char in self.punct:
-                        result.append(new_token.lower())
+                        result.append(new_token)
                         result.append(char)
                         new_token=""
                     else :
                         new_token +=char
                 if new_token:
-                    result.append(new_token.lower())
+                    result.append(new_token)
         return result
 
 
