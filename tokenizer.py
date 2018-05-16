@@ -3,14 +3,14 @@ import string
 class Tokenizer():
     def __init__(self):
         self.punct = string.punctuation
-        
+
     def get_tokens(self, text):
         tokens = text.split()
         result = []
         for token in tokens:
             if token.isalpha():
                 result.append(token)
-            else: 
+            else:
                 new_token=""
                 for char in token:
                     if char in self.punct:
@@ -19,9 +19,10 @@ class Tokenizer():
                         new_token=""
                     else :
                         new_token +=char
-            if new_token:
-                result.append(new_token)
+                if new_token:
+                    result.append(new_token)
         return result
+<<<<<<< HEAD
     
     def remove_stopwords(self, word_list):
         processed_word_list = []
@@ -46,3 +47,10 @@ if __name__ == '__main__':
 
 
     
+=======
+
+
+    def get_terms(self, text):
+        unique = set(self.get_tokens(text))
+        return list(unique)
+>>>>>>> 8f8a1448ae5a02720d17792605fc394676f778c6

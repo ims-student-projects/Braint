@@ -57,11 +57,11 @@ class Featurer():
         idf.
         """
 
-        #  Extract terms from corpus and calculate document frequency for each.
-        #  Simulataneously collection size is calculated.
+        #  Extract terms from corpus and calculate document frequency for each
+        #  and calculate collection size (nr of tweets)
         for tweet in self.__corpus:
             self.__size += 1
-            terms = Tokenizer(tweet.get_text()).get_terms()  # TODO: adapt to Tokenizer
+            terms = Tokenizer().get_terms(tweet.get_text())  # TODO: adapt to Tokenizer
             for term in terms:
                 if term not in self.__term_idfs:
                     self.__term_idfs[term] = 1
@@ -83,7 +83,7 @@ class Featurer():
         """
         # get term frequencies
         tfs = {}
-        tokens = Tokenizer(tweet.get_text()).get_tokens()
+        tokens = Tokenizer().get_tokens(tweet.get_text())
         for token in tokens:
             if token in tfs.keys():
                 tfs[token] += 1

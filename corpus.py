@@ -16,17 +16,19 @@ class Corpus(object):
             (e.g. The first line of the gold label file contains the label for the tweet on the first line of the other file).
     """
 
-    def __init__(self, filename_tweets:str=None, filename_gold_labels:str=None):
+    def __init__(self, filename_tweets:str, filename_gold_labels:str=None):
         """ Inits the Corpus.
 
             Args:
-                (optional) filename_tweets: the name of the file containing the tweets and predicted labels.
+                filename_tweets: the name of the file containing the tweets and predicted labels.
                 (optional) filename_gold_labels: the name of the file containg the gold labels.
         """
         self.__corpus = []
         self.__curr = 0 # counter for iterator
         if filename_tweets and filename_gold_labels:
-            self.__read_files(filename_tweets, filename_gold_labels)
+            self.__read_test_files(filename_tweets, filename_gold_labels)
+        elif filename_tweets:
+            self.__read_train_file(filename_tweets)
         self.__all_feature_names = []
 
     def __iter__(self):
@@ -38,19 +40,24 @@ class Corpus(object):
         else:
             self.__curr += 1
             return self.get_ith(self.__curr - 1)
+    
+    def __read_train_file(self, filename_tweets : str):
+        with open (filename_tweets, 'r') as train_file:
+            for line in train_file:
+                line = line.split('\t')
+                gold_label = line[0].strip()
+                text = line[1].strip()
+                tweet_obj = Tweet(text, gold_label, None)
+                self.__corpus.append(tweet_obj)
 
-    def __read_files(self, filename_tweets : str, filename_gold_labels : str):
+    def __read_test_files(self, filename_tweets : str, filename_gold_labels : str):
         with open (filename_tweets, 'r') as tweet_file, \
             open (filename_gold_labels) as gold_label_file:
-
-            #assert len(tweet_file.readlines()) == len(gold_label_file.readlines()), "File lengths do not match"
-
             for tweet, gold_label in zip(tweet_file, gold_label_file):
                 linesplit = tweet.split('\t')
                 pred_label = linesplit[0].strip()
                 text = linesplit[1].strip()
                 gold_label = gold_label.strip()
-
                 tweet_obj = Tweet(text, gold_label, pred_label)
                 self.__corpus.append(tweet_obj)
 
