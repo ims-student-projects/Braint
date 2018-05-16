@@ -22,23 +22,27 @@ class Tokenizer():
             if new_token:
                 result.append(new_token)
         return result
-                        
-    def get_terms(self, text):
-        p =['~', '!', '#', '$', '%', '^', '&', '*', ',', '?','*']
-        newStr =''
-        i =0
-        punc = None
-        for i in range(len(text)):
-            if text[i] in p:
-                newStr = ' '
-                newStr = text[i]
-                punc =False
-            else:
-                newStr = text[i]
-                punc = True 
-        return newStr.split('  ')
     
+    def remove_stopwords(self, word_list):
+        processed_word_list = []
+        for word in word_list:
+            word = word.lower() # in case they arenot all lower cased
+            # TODO if all are capital keep as itis and stopwords
+            """if word not in stopwords.words("english"):
+                processed_word_list.append(word)
+        return processed_word_list"""
+            processed_word_list.append(word)
+        return  processed_word_list
+      
+    def get_terms(self, text):
+      def get_terms(self, text):
+        unique = set(self.get_tokens(text))
+        return list(unique)
 if __name__ == '__main__':
     a = Tokenizer()
-    b = a.get_tokens("hello, world!")
-    print(b)
+    b = a.get_tokens("HeLlO, WoRld!")
+    c = a.remove_stopwords(b)
+    print(c)
+
+
+    
