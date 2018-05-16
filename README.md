@@ -1,6 +1,5 @@
-# Baseline Submission
+# Braint: Tweeter Emotion classifier
 
-## Code
 
 ### Structure and Explanation
 __Tokenizer__ a class to tokenize the Tweet texts. Currently the tweet text is split at whitespace characters and punctuation is treated as separate token.
@@ -60,46 +59,31 @@ All of these files should be located in the subfolder `data`.
 - 1 iteration:
 
 	```
-	Fmac	Fmic	supP	supR	disP	disR	feaP	feaR
-	0.422	0.433	0.46	0.35	0.47	0.54	0.39	0.59
-	```
-	```
-	sadP	sadR	joyP	joyR	angP	angR
-	0.38	0.56	0.68	0.22	0.43	0.33
+	Fmac	Fmic	supP	supR	disP	disR	feaP	feaR	sadP	sadR	joyP	joyR	angP	angR
+	0.422   0.433	0.46	0.35	0.47	0.54	0.39	0.59	0.38	0.56	0.68	0.22	0.43	0.33
 	```
 
 - 5 iterations:
 
 	```
-	Fmac	Fmic	supP	supR	disP	disR	feaP	feaR
-	0.382	0.389	0.26	0.83	0.57	0.37	0.64	0.28
-	```
-	```
-	sadP	sadR	joyP	joyR	angP	angR
-	0.53	0.27	0.68	0.19	0.4		0.4
+	Fmac	Fmic	supP	supR	disP	disR	feaP	feaR	sadP	sadR	joyP	joyR	angP	angR
+	0.382   0.389	0.26	0.83	0.57	0.37	0.64	0.28	0.53	0.27	0.68	0.19	0.4	0.4
 	```
 
 - 10 iterations:
 
 	```
-	Fmac	Fmic	supP	supR	disP	disR	feaP	feaR
-	0.411	0.425	0.34	0.62	0.37	0.66	0.6		0.31
-	```
-	```
-	sadP	sadR	joyP	joyR	angP	angR
-	0.51	0.26	0.5		0.49	0.54	0.21
+	Fmac	Fmic	supP	supR	disP	disR	feaP	feaR	sadP	sadR	joyP	joyR	angP	angR
+	0.411   0.425	0.34	0.62	0.37	0.66	0.6	0.31	0.51	0.26	0.5	 0.49	0.54	0.21
 	```
 
 - 100 iterations:
 
 	```
-	Fmac	Fmic	supP	supR	disP	disR	feaP
-	0.4	0.399	0.35	0.4	0.48	0.42	0.44
+	Fmac	Fmic	supP	supR	disP	disR	feaP	feaR	sadP	sadR	joyP	joyR	angP	angR
+	0.4     0.399	0.35	0.4	0.48	0.42	0.44	0.43	0.36	0.32	0.47 	0.4	0.33	0.41
 	```
-	```
-	feaR	sadP	sadR	joyP	joyR	angP	angR
-	0.43	0.36	0.32	0.47	0.4	0.33	0.41
-	```
+
 
 #### Convergence
 
