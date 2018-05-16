@@ -8,7 +8,7 @@ Two functions are implemented:
 - __get_tokens(text:str)__: returns a list of every token of the text
 - __get_terms(text:str)__: returns a list of types
 
-__Featurer__ a class to extract features from Tweet texts. Currenty implemented is the tf-idf feature.
+__Featurer__ a class to extract features from Tweet texts. Currently implemented is the tf-idf feature.
 
 - This class is initialized with the Corpus from which features should be extracted.
 - __set\_features()__: sets extracts the features from the Tweets and stores the features as a dictionary (key:feature\_name; value:tf-idf) in the Tweet object
@@ -29,7 +29,7 @@ For the most of the training we used the data provided by the [shared task](http
 	- Training data: train.csv
 	- Test data: trial.csv and trial.labels
 
-For the experiment with the learning rate and 100 iterations (see under [Discussion](#Discussion)) we used the main `train.csv` file with 153,600 labeled tweets. We split this file into __80% train__ data and __20% test__ data using the following commands:
+For the experiment with the learning rate and 100 iterations (see under [Discussion](#discussion)) we used the main `train.csv` file with 153,600 labeled tweets. We split this file into __80% train__ data and __20% test__ data using the following commands:
 
 ```
 head -n 30720 train.csv > test
@@ -52,7 +52,7 @@ All of these files should be located in the subfolder `data`.
 | 10 iterations              | 0.411                    | 0.425                    |
 | 100 iterations*						 | 0.400										| 0.399										 |
 
-* \*Note that here we used the main train data and an adaptive learning rate (see explanation under Data and Discussion).
+\*Note that here we used the main train data and an adaptive learning rate (see explanation under [Data](#data) and [Discussion](#discussion)).
 
 #### Detail (including Precision and Recall for each class)
 
@@ -87,14 +87,14 @@ All of these files should be located in the subfolder `data`.
 
 #### Convergence
 
-Convergence of the model with 100 iterations. A adaptive learning rate (`0 < n ≤ 1`) was applied in this case, i.e. after each iteration the learning rate was decreased by 0.01.
+Convergence of the model with 100 iterations. A adaptive learning rate (`0 < n ≤ 1`) was applied in this case, i.e. starting with `1.0`, the learning rate was decreased by `0.01` after each iteration.
 
-By convergence we mean here how well the model was predicting the train tweet. If it reached 80%, this means that 80% of the tweets during a consecutive iteration were predicted correctly. This does not reflect how well the model predicted the test (unseen) data!
+By convergence we mean here how well the model was predicting during `training phase`. 80% convergence, for example, means that 80% of the tweets during the last iteration were predicted correctly. This does not reflect how well the model will predict the test (unseen) data!
 
 ![convergence chart](data/convergence_chart.png)
 
 #### Discussion
 
-We tested multiple times with different amount of iterations. During the 100 iterations experiment we used a learning rate that decreases during training (`0 < n ≤ 1`). In this scenario the model converged by `81.09%` after the 100th iteration on the train data. To compare, without the learning rate and with only 1 iteration the model converged by `36.56%`. However with a higher convergence the model did not perform better on the `test` data, instead we got even a slightly worse f-result (`Fmac: 0.4, Fmic:	0.399`).
+We trained and tested the model several times with different number of iterations. During the 100 iterations experiment we used a learning rate that decreases during training (see description under [Convergence](#convergence)). In this scenario the model converged `81.09%` after the last iteration of training. To compare, with a static learning rate of `1.0` and with only `1` iteration the model converged `36.56%`. However with a higher convergence the model did not perform better on the test data, we even got a slightly worse f-measure (`Fmac: 0.4, Fmic:	0.399`).
 
-Our conclusion from this observation is that our feature set does not allow a better prediction rate. We think that we should filter out certain words (eg. stopwords) and add additional features (eg. number of capitalized words, biwords, etc..).
+Our conclusion from this observation is that our feature set does not allow a better prediction rate. We think that we should filter out certain words (eg. stopwords) and extract additional features (eg. number of capitalized words, biwords, etc..).
