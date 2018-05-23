@@ -1,8 +1,7 @@
 from tokenizer import Tokenizer
-#from corpus import Corpus
+from corpus import Corpus
 from math import log10
 from operator import itemgetter
-import docopt
 
 class Featurer():
     """
@@ -25,7 +24,8 @@ class Featurer():
         - tweet.get_features() -- dict of features and values for each tweet
 
     :Usage:
-        features = Featurer(corpus, feature_type, stopwords_perc)
+        features = Featurer(corpus, stopwords_perc)
+        features.extract(feature_type)
 
     :Options:
         feature_types:
@@ -33,20 +33,23 @@ class Featurer():
             -- count
             -- frequency
             -- tf-idf
-            -- n-gram
+            -- ngram
     """
 
-    def __init__(self, corp=None, type=None, stopwords_perc=10):
+    def __init__(self, corp=None, stopwords_perc=10):
 
-        self._types = ['binary', 'count', 'frequency', 'tf-idf', 'n-gram']
+        self._types = { 'binary': self._extract_binary,
+                        'count': self._extract_count,
+                        'frequency': self._extract_frequency,
+                        'tf-idf': self._extract_tf_idf,
+                        'ngram': self._extract_ngram}
 
         """
         Greacefully exit if parameters are invalid
         """
-        #if type not in self._types or not corp or not isinstance(corp, Corpus):
-        if type not in self._types or not corp:
-            raise ValueError('\nMissing or invalid 2 positional arguments:'
-                '\'corpus\' and \'feature_type\'\n{}'.format(self.__doc__))
+        if not corp or not isinstance(corp, Corpus):
+            raise ValueError('\nMissing or invalid argument:\'corpus\'\n{}'
+                .format(self.__doc__))
 
         self._corpus = corp                 # iterable collection of tweets
         self._size = 0                      # corpus size = nr of tweets
@@ -111,14 +114,18 @@ class Featurer():
         self._corpus.set_all_feature_names(self._term_idfs.keys())
 
 
-    def set_features(self):
+    def extract(self, type=None):
         """
-        Calculate features (a vector of tf-idf scores) for each tweet and send
-        to its corresponding Tweet object.
+        Extract features for each tweet and send to corresponding Tweet object.
+        If no or invalid type is given as parameter, print a soft warning.
         """
-        for tweet in self._corpus:
-            features = self._extract_tf_idf(tweet)
-            tweet.set_features(features)
+        if not type or type not in self._types.keys():
+            print('[Warning] invalid or missing feature type. Skipping request.')
+        else:
+            for tweet in self._corpus:
+                 # use function matching with requested feature type
+                features = self._types[type](tweet)
+                tweet.set_features(features)
 
 
     def _extract_tf_idf(self, tweet):
@@ -147,3 +154,46 @@ class Featurer():
         tf_idfs['THETA'] = 1
 
         return tf_idfs
+
+
+    def _extract_binary(self, tweet):
+        binaries = {}
+        tokens = Tokenizer().get_tokens(tweet.get_text())
+        for token in tokens:
+            if token in self._term_idfs.keys():
+                if token not in binaries:
+                    binaries[token] = 1
+        binaries['THETA'] = 1
+        return binaries
+
+
+    def _extract_count(self, tweet):
+        counts = {}
+        tokens = Tokenizer().get_tokens(tweet.get_text())
+        for token in tokens:
+            if token in self._term_idfs.keys():
+                if token in counts:
+                    counts[token] += 1
+                else:
+                    counts[token] = 1
+        counts['THETA'] = 1
+        return counts
+
+
+    def _extract_frequency(self, tweet):
+        frequencies = {}
+        tokens = Tokenizer().get_tokens(tweet.get_text())
+        for token in tokens:
+            if token in self._term_idfs.keys():
+                if token in frequencies:
+                    frequencies[token] += 1
+                else:
+                    frequencies[token] = 1
+        for token in frequencies:
+            frequencies[token] /= len(tokens)
+        frequencies['THETA'] = 1
+        return frequencies
+
+
+    def _extract_ngram(self, tweet):
+        return None
