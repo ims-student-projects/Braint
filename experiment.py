@@ -21,7 +21,7 @@ def main():
     # Extract features
     features_train = Featurer(train_corpus, 5)
     features_test = Featurer(test_corpus, 5)
-    types = [ 'binary', 'count', 'frequency', 'tf-idf', 'ngram']
+    types = [ 'binary', 'count', 'frequency', 'tf-idf']
     for type in types:
         print('Extracting features -- {}'.format(type))
         features_train.extract(type)
@@ -29,7 +29,7 @@ def main():
         result = Result()
 
         # Train and test model
-        for i in range(1,5):
+        for i in range(1,10):
             # train
             classifier = MulticlassPerceptron(classes, train_corpus.get_all_feature_names())
             classifier.train(i, train_corpus)
