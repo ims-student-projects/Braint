@@ -2,9 +2,7 @@ from evaluator.scorer import Scorer
 from evaluator.result import Result
 from corpus import Corpus
 from featurer import Featurer
-#from baseline_feature_extractor import FeatureExtractor
 from multiclass_perceptron import MulticlassPerceptron
-from time import time
 
 def main():
     # TODO let Corpus generate this list
