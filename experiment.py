@@ -18,11 +18,11 @@ def main():
 
     # Extract features
     perc = [0, 5, 10, 20]
-    iterations = [1, 2, 5, 10, 30]
+    iterations = [1, 2, 5, 10, 20]
     for p in perc:
-        print('Choosing stopwords threshold --> {}'.format(p))
-        features_train = Featurer(train_corpus, 5)
-        features_test = Featurer(test_corpus, 5)
+        print('\nChoosing stopwords threshold --> {}'.format(p))
+        features_train = Featurer(train_corpus, p)
+        features_test = Featurer(test_corpus, p)
         types = [ 'binary', 'count', 'frequency', 'tf-idf']
         for type in types:
             print('Extracting features --> {}'.format(type))
