@@ -97,11 +97,12 @@ class Featurer():
             threshold = self._size / self._threshold
             sorted_dfs = sorted(term_dfs.items(), key=itemgetter(1), reverse=True)
             for term_df in sorted_dfs:
-                if term_df[1] < threshold:
+                if term_df[1] < threshold:  # Stop if term freq is less than threshold
                     break
                 else:
                     self._stopwords.append(term_df[0])
                     del term_dfs[term_df[0]]
+            print('Removed stopwords: {}\n'.format(', '.join(self._stopwords)))
 
         #  Convert df's into idf's (inverted df)
         for term in term_dfs.keys():
