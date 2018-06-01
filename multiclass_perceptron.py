@@ -1,6 +1,6 @@
 from operator import itemgetter
-
 from tweet import Tweet
+import json
 
 class MulticlassPerceptron(object):
     """ A perceptron for multiclass classification.
@@ -8,7 +8,6 @@ class MulticlassPerceptron(object):
 
     def __init__(self, classes, feature_names):
         """ Inits the MulticlassPerceptron.
-
             Args:
                 classes: a list contaning the class names as strings
                 feature_names: a list containing all names of the features that are used.
@@ -21,28 +20,28 @@ class MulticlassPerceptron(object):
             for feature in feature_names:
                 self.weights[c][feature] = 0 # TODO: initialize weights randomly
 
+
     def __update_weights(self, features, prediction, true_label):
         """ Updates the weights of the perceptron.
-
             Args:
                 features: an iterable containg the names of the features of the current example
                 prediction: the predicted label as a string
                 true_label: the true label as a string
-        """       
+        """
         if prediction != true_label: # only update if prdiction was wrong
             for feat in features:
                 # increase weights of features of example in correct class as these are important for classification
                 self.weights[true_label][feat] += 1
                 # decrease weights of features of example in wrongly predicted class
                 self.weights[prediction][feat] -= 1
-    
-    def __predict(self, features, example):
-        """ Returns a prediction for the given features.
-            Calculate activation for each class and return the class with the highest activation.
 
+
+    def __predict(self, features, example, weights=None):
+        """ Returns a prediction for the given features. Calculates activation
+            for each class and returns the class with the highest activation.
             Args:
                 features: dictionary containing features and values for these
-
+                example: tweet object for which prediction is made
             Returns:
                 a tuple containg (predicted_label, activation)
         """
@@ -61,19 +60,44 @@ class MulticlassPerceptron(object):
         example.set_pred_label(activations[0][0])
         return activations[0]
 
-    def train(self, num_iterations, examples):
-        """ Function to train the MulticlassPerceptron.
 
+    def train(self, num_iterations, examples, fn_acc=None, fn_weights=None):
+        """ Function to train the MulticlassPerceptron. Optionally writes weights
+            and accuracy into files.
             Args:
                 num_iterations: the number of passes trough the training data
-                examples: corpus(iterable) containging of Tweets
+                examples: corpus (iterable) containing Tweets
+                fn_acc: file where to write accuracy scores for each iteration
+                fn_acc: file where to write weights for each iteration
         """
+        accuracies = []
         for i in range(num_iterations):
+            correct = 0
+            incorrect = 0
             for example in examples:
                 true_label = example.get_gold_label()
                 tweet_features = example.get_features() # dict
                 prediction = self.__predict(tweet_features, example)
                 self.__update_weights(tweet_features, prediction[0], true_label)
+                # keep count of correct/incorrect predictions
+                if true_label == prediction[0]:
+                    correct +=1
+                else:
+                    incorrect +=1
+
+            # calculate accuracy score for iteration
+            acc = round((cor / examples.length()), 2)
+            accuracies.append(acc)
+
+            # if requested, write current weights into file
+            if fn_weights:
+                self.save_model(fn_weights)
+
+        # if requested, write accuracy results to file
+        if fn_acc:
+            with open(fn_acc, 'w') as f:
+                f.write('\n'.join([a for a in accuracies]))
+
 
     def __debug_print_prediction(self, example, prediction):
         print("true label: " + example.get_gold_label())
@@ -81,14 +105,29 @@ class MulticlassPerceptron(object):
         print("prediction: " + example.get_pred_label())
         print(prediction)
 
-    def test(self, examples):
+
+    def test(self, examples, weights=None):
+        """
+        Will use custom weights is passed by argument, otherwise class weights
+        will be used.
+
+        Args:
+        examples: corpus (iterable) containing Tweets
+        weights: (optional) use custom weights
+        """
+        # reset class weights if custom weights are provided
+        if weights:
+            self.load_model(weights)
+
         for example in examples:
             tweet_features = example.get_features() # dict
-            prediction = self.__predict(tweet_features, example)
+            prediction = self.__predict(tweet_features, example, weights)
 
-    def save_model(self):
-        pass
-    
-    def load_model(self):
-        pass
 
+    def save_model(self, filename):
+        with open(filename, 'a') as w:
+            w.write(json.dumps(self.weights) + '\n')
+
+
+    def load_model(self, weights):
+        self.weights = weights
