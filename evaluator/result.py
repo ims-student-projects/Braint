@@ -29,8 +29,8 @@ class Result():
     def print_header(self):
         bold = '\033[1m'
         unbold = '\033[0m'
-        header = '{}Fmac\tFmic{}\t{}'
-            .format(bold, unbold, '\t'.join([l for l in self.labels]))
+        header = '{}Fmac\tFmic{}\t{}'.format(
+            bold, unbold, '\t'.join([l for l in self.labels]))
         print(header)
 
 

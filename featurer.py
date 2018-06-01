@@ -13,10 +13,12 @@ class Featurer():
 
     :Expected input:
         - corpus -- an instance of class Corpus
-        - feature type -- type of features to be extracted
         - stopwords_perc -- (optional) how strict to be with stopwords, must be
         0 ≤ k ≤ corpus size. Default value is 10, which means that terms with a
         document frequency ≥ (corpus size / 10) are considered stopwords.
+
+        when extract() is called:
+        - feature_type -- type of features to be extracted
 
     :Output:
     Directly fed back into the corpus and tweets:
@@ -28,7 +30,7 @@ class Featurer():
         features.extract(feature_type)
 
     :Options:
-        feature_types:
+        feature_type:
             -- binary
             -- count
             -- frequency
@@ -38,12 +40,6 @@ class Featurer():
 
     def __init__(self, corp=None, stopwords_perc=10):
 
-        self._types = { 'binary': self._extract_binary,
-                        'count': self._extract_count,
-                        'frequency': self._extract_frequency,
-                        'tf-idf': self._extract_tf_idf,
-                        'ngram': self._extract_ngram}
-
         """
         Greacefully exit if parameters are invalid
         """
@@ -51,6 +47,12 @@ class Featurer():
             raise ValueError('\nMissing or invalid argument:\'corpus\'\n{}'
                 .format(self.__doc__))
 
+        # Dict that matches feature type to its method
+        self._types = { 'binary': self._extract_binary,
+                        'count': self._extract_count,
+                        'frequency': self._extract_frequency,
+                        'tf-idf': self._extract_tf_idf,
+                        'ngram': self._extract_ngram}
         self._corpus = corp                 # iterable collection of tweets
         self._size = 0                      # corpus size = nr of tweets
         self._term_idfs = {}                # dict with term-idf-score pairs
@@ -102,7 +104,6 @@ class Featurer():
                 else:
                     self._stopwords.append(term_df[0])
                     del term_dfs[term_df[0]]
-            print('Removed stopwords: {}\n'.format(', '.join(self._stopwords)))
 
         #  Convert df's into idf's (inverted df)
         for term in term_dfs.keys():
@@ -121,10 +122,10 @@ class Featurer():
         If no or invalid type is given as parameter, print a soft warning.
         """
         if not type or type not in self._types.keys():
-            print('[Warning] invalid or missing feature type. Skipping request.')
+            print('invalid feature type {}. Ignoring request.'.format(type))
         else:
             for tweet in self._corpus:
-                 # use function matching with requested feature type
+                 # Fabricator to use method matching with requested feature type
                 features = self._types[type](tweet)
                 tweet.set_features(features)
 

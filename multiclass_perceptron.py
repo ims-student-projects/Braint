@@ -72,21 +72,17 @@ class MulticlassPerceptron(object):
         """
         accuracies = []
         for i in range(num_iterations):
-            correct = 0
-            incorrect = 0
+            corr = 0  # correct predictions
             for example in examples:
                 true_label = example.get_gold_label()
                 tweet_features = example.get_features() # dict
                 prediction = self.__predict(tweet_features, example)
                 self.__update_weights(tweet_features, prediction[0], true_label)
                 # keep count of correct/incorrect predictions
-                if true_label == prediction[0]:
-                    correct +=1
-                else:
-                    incorrect +=1
+                corr += 1 if true_label == prediction[0] else 0
 
             # calculate accuracy score for iteration
-            acc = round((cor / examples.length()), 2)
+            acc = round((corr / examples.length()), 2)
             accuracies.append(acc)
 
             # if requested, write current weights into file
@@ -96,7 +92,7 @@ class MulticlassPerceptron(object):
         # if requested, write accuracy results to file
         if fn_acc:
             with open(fn_acc, 'w') as f:
-                f.write('\n'.join([a for a in accuracies]))
+                f.write('\n'.join([str(a) for a in accuracies]))
 
 
     def __debug_print_prediction(self, example, prediction):

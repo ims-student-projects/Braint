@@ -80,8 +80,8 @@ class Scorer():
         """
         Fancy list of macro, micro f-scores and precision and recall for all labels
         """
-        bold = '\033[1m' if for_print else ''
-        unbold = '\033[0m' if for_print else ''
+        bold = '\033[1m' if bolded else ''
+        unbold = '\033[0m' if bolded else ''
         pr_scores = '\t'.join('{}\t{}'.format(round(self.precision[l],2),
             round(self.recall[l],2)) for l in self.labels)
         all_scores = '{}{}\t{}{}\t{}'.format(bold, round(self.f_macro,3),
