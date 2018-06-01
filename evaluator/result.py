@@ -45,4 +45,4 @@ class Result():
 
     def write(self, score, filename):
         with open(filename, 'a') as f:
-            f.write(score.__str__(bolded=False))
+            f.write(score.__str__(use_bold=False) + '\n')
