@@ -76,13 +76,14 @@ class Scorer():
         return (2*p*r)/(p+r) if (p+r)!=0 else 0.0
 
 
-    def __str__(self):
+    def __str__(self, bolded=True):
         """
         Fancy list of macro, micro f-scores and precision and recall for all labels
         """
-        bold = '\033[1m'
-        unbold = '\033[0m'
-        pr_scores = '\t'.join('{}\t{}'.format(round(self.precision[l],2), round(self.recall[l],2)) for l in self.labels)
-        all_scores = '{}{}\t{}{}\t{}'.format(bold, round(self.f_macro,3), round(self.f_micro,3),
-            unbold, pr_scores)
+        bold = '\033[1m' if for_print else ''
+        unbold = '\033[0m' if for_print else ''
+        pr_scores = '\t'.join('{}\t{}'.format(round(self.precision[l],2),
+            round(self.recall[l],2)) for l in self.labels)
+        all_scores = '{}{}\t{}{}\t{}'.format(bold, round(self.f_macro,3),
+            round(self.f_micro,3), unbold, pr_scores)
         return all_scores
