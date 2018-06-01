@@ -5,21 +5,21 @@ from featurer import Featurer
 from multiclass_perceptron import MulticlassPerceptron
 import json
 
-    """
-    A fancy demonstration of how Braint can be used. Change variables under
-    Configuration to try it out differently.
+"""
+A fancy demonstration of how Braint can be used. Change variables under
+Configuration to try it out differently.
 
-    Don't forget to remove output files, if you already have run Braint. E.g:
-    `rm experiment_*` in your terminal
-    """
+Don't forget to remove output files, if you already have run Braint. E.g:
+`rm experiment_*` in your terminal
+"""
 
 def main():
 
     # Configuration
     classes = ['joy', 'anger', 'fear', 'surprise', 'disgust', 'sad']
     types = [ 'binary', 'count', 'frequency', 'tf-idf']
-    stopw = 5 # Percentage of words to be filtered from features
-    iterations = 20
+    stopw = 0 # Percentage of words to be filtered from features
+    iterations = 25
     train_data = 'data/train'
     test_data = 'data/test'
 
@@ -40,7 +40,7 @@ def main():
 
     # Extract features of each type
     for type in types:
-        print('\nExtracting features {}{}{}. Results:'.format(bold, type, unbold))
+        print('\nExtracting features {}{}{}. Training Model... '.format(bold, type, unbold))
         features_train.extract(type)
         features_test.extract(type)
 
@@ -54,6 +54,7 @@ def main():
         classifier.train(iterations, train_corpus, fn_acc, fn_weights)
         result = Result()
 
+        print('Testing Model. Results: ')
         # Test the model using saved weights for each iteration
         with open(fn_weights, 'r') as f:
             for w in f:
@@ -61,7 +62,7 @@ def main():
                 classifier.test(test_corpus, weight)
                 scores = Scorer(test_corpus)
                 result.show(scores)
-                result.write(scores, 'expout_fscores')
+                result.write(scores, fn_fscores)
 
 
 def print_braint():
