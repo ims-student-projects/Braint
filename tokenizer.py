@@ -8,14 +8,14 @@ class Tokenizer():
         tokens = text.split()
         result = []
         for token in tokens:
-            if token.isalpha():
+            if token.isalpha() or token == '[#TRIGGERWORD#]' or token == 'http://url.removed':
                 result.append(token)
-            else:
+            elif token != '[NEWLINE]': #ignote this newline thing
                 new_token=""
                 for char in token:
                     if char in self.punct:
                         result.append(char)
-                        if new_token:
+                        if new_token: # only add if not empty!
                             result.append(new_token)
                         new_token=""
                     else:
