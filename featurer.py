@@ -14,7 +14,7 @@ class Featurer():
     :Expected input:
         - corpus -- an instance of class Corpus
         - stopwords_perc -- (optional) how strict to be with stopwords, must be
-        0 ≤ k ≤ corpus size. Default value is 10, which means that terms with a
+        0 ≤ k ≤ corpus size. E.g. if value is 10, which means that terms with a
         document frequency ≥ (corpus size / 10) are considered stopwords.
 
         when extract() is called:
@@ -35,10 +35,10 @@ class Featurer():
             -- count
             -- frequency
             -- tf-idf
-            -- ngram
+            -- bigram
     """
 
-    def __init__(self, corp=None, stopwords_perc=10):
+    def __init__(self, corp=None, stopwords_perc=0, bigram=False):
 
         """
         Greacefully exit if parameters are invalid
@@ -52,16 +52,16 @@ class Featurer():
                         'count': self._extract_count,
                         'frequency': self._extract_frequency,
                         'tf-idf': self._extract_tf_idf,
-                        'ngram': self._extract_ngram}
+                        'bigram': self._extract_bigram}
         self._corpus = corp                 # iterable collection of tweets
         self._size = 0                      # corpus size = nr of tweets
         self._term_idfs = {}                # dict with term-idf-score pairs
         self._stopwords = []                # terms with highest df-score
         self._threshold = stopwords_perc    # how strict to be with stopwords
-        self._main()                        # start the fun
+        self._main(bigram)                  # start the fun
 
 
-    def _main(self):
+    def _main(self, bigram):
         """
         Main routine the performs some basic calculations before feature vectors
         are extracted:
@@ -71,7 +71,10 @@ class Featurer():
         (4) generates stopwords, i.e. words with highest df (by default this is
             df >= collection size / 10).
         """
-        self._extract_idf()  # gets us size, terms, idf scores and stopwords
+        if bigram:
+            self._extract_bigram_labels()
+        else:
+            self._extract_idf()  # gets us size, terms, idf scores and stopwords
 
 
     def _extract_idf(self):
@@ -114,6 +117,25 @@ class Featurer():
 
         # Add list of features to corpus
         self._corpus.set_all_feature_names(self._term_idfs.keys())
+
+
+    def _extract_bigram_labels(self):
+        bigram_labels = {}
+        for tweet in self._corpus:
+            self._size += 1
+            tokens = Tokenizer().get_tokens(tweet.get_text())
+            previous = '<BEGIN>'
+            for token in tokens:
+                bigram = previous + ' ' + token
+                previous = token
+                if bigram not in bigram_labels.keys():
+                    bigram_labels[bigram] = None
+        bigram_labels['THETA'] = None
+
+        # Add list of features to corpus
+        self._corpus.set_all_feature_names(bigram_labels.keys())
+        with open('experiment_bigram_labels', 'w') as f:
+            f.write('", "'.join(bigram_labels.keys()))
 
 
     def extract(self, type=None):
@@ -197,5 +219,21 @@ class Featurer():
         return frequencies
 
 
-    def _extract_ngram(self, tweet):
-        return None
+    def _extract_bigram(self, tweet):
+        bigrams = {}
+        tokens = Tokenizer().get_tokens(tweet.get_text())
+        previous = '<BEGIN>'
+        for token in tokens:
+            bigram = previous + ' ' + token
+            previous = token
+            if bigram not in bigrams:
+                bigrams[bigram] = 1
+            else:
+                bigrams[bigram] = 1
+
+        for bigram in bigrams:
+            bigrams[bigram] /= len(tokens)
+
+        bigrams['THETA'] = 1
+
+        return bigrams
