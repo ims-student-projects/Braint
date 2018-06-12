@@ -22,6 +22,7 @@ class Tokenizer():
     :Options:
         All options are boolean and are by default False:
             -- lowercase
+            -- stem
             -- replace_emojis
             -- replace_num
             -- remove_stopw
@@ -87,7 +88,7 @@ class Tokenizer():
                             result.append((char, 'punctuation'))
                         # add preceding charachters to results, if any
                         if new_token:
-                            result.append((new_token, 'word'))
+                            result.append(self.add_new_token(token, replace_num))
                             new_token = ''
                     # Character is common emoji
                     elif char in emoji_to_label.keys():
@@ -98,7 +99,7 @@ class Tokenizer():
                             result.append((char, 'emoji'))
                         # add preceding charachters to results, if any
                         if new_token:
-                            result.append((new_token, 'word'))
+                            result.append(self.add_new_token(token, replace_num))
                             new_token = ''
                     # Character is uncommon emoji
                     elif char in emoji.UNICODE_EMOJI.keys():
@@ -109,13 +110,13 @@ class Tokenizer():
                             result.append((char, 'emoji'))
                         # add preceding charachters to results, if any
                         if new_token:
-                            result.append((new_token, 'word'))
+                            result.append(self.add_new_token(token, replace_num))
                             new_token = ''
                     # Character is alpha-numerical
                     else:
                         new_token += char
                 if new_token:
-                    result.append((new_token, 'word'))
+                    result.append(self.add_new_token(token, replace_num))
 
         # Remove stopwords
         if remove_stopw:
@@ -126,6 +127,16 @@ class Tokenizer():
             result = self.get_stems(result)
 
         return result
+
+
+    def add_new_token(self, token, replace_num):
+        if token.isalpha():
+            return (token, 'word')
+        elif token.isnumeric():
+            if replace_num:
+                return ('[#num#]', 'numeric')
+            return (token, 'numeric')
+        return (token, 'other')  # Should happen, but to be save
 
 
     def remove_stopwords(self, word_list):
@@ -148,6 +159,7 @@ class Tokenizer():
 
         tokens = self.get_tokens(text, lowercase, stem, replace_emojis,
             replace_num, remove_stopw, remove_punct)
+
         unique_tokens = []  # list of strings
         terms = []  # list of tuples
         for token in tokens:
@@ -174,9 +186,11 @@ class Tokenizer():
 if __name__ == '__main__':
 
     tokenizer = Tokenizer()
-    test_sentence = 'HeLlO\t,  WoRld! I\'m tired of losers <33333 :)))) [NEWLINE] >:\ 🤠 🙂 😃😄😆😍'
-    tokens = tokenizer.get_tokens(test_sentence, lowercase=True, stem=True,
+    test_sentence = 'HeLlO\t,  WoRld! I\'m Tired of losers <33333 1984 :)))) [NEWLINE] >:\ 🤠 🙂 😃😄😆😍'
+
+    tokens = tokenizer.get_tokens(test_sentence, stem=False, lowercase=False,
         remove_stopw = True, replace_emojis=True)
+
     print('Tuples tokens ({}):\n{}\n'.format(len(tokens), tokens))
     print('String tokens:'.format(len(tokens)))
     print('"{}"\n'.format('" "'.join(t[0] for t in tokens)))
