@@ -12,8 +12,8 @@ emoticon_to_label = {
     r"</3+" : ":broken_heart:",    # </3
     r":'\)+" : ":joy:",    # :')
     r":'-\)+" : ":joy:",    # :'-)
-    r"^^" : ":joy:",    # ^^
-    r"^_^" : ":joy:",    # ^_^
+    r"\^\^" : ":joy:",    # ^^
+    r"\^_\^" : ":joy:",    # ^_^
     r":D" : ":smile:",    # :D
     r":-D" : ":smile:",    # :-D
     r"=d" : ":smile:",    # =d
@@ -39,14 +39,14 @@ emoticon_to_label = {
     r";-]" : ":wink:",    # ;-]
     r";]" : ":wink:",    # ;]
     r";D" : ":wink:",    # ;D
-    r";^\)+" : ":wink:",    # ;^)
+    r";\^\)+" : ":wink:",    # ;^)
     r"':\(" : ":sweat:",    # ':(
     r"':-\(" : ":sweat:",    # ':-(
     r"'=\(" : ":sweat:",    # '=(
     r":\*" : ":kissing_heart:",    # :*
     r":-\*" : ":kissing_heart:",    # :-*
     r"=\*" : ":kissing_heart:",    # =*
-    r":^\*" : ":kissing_heart:",    # :^*
+    r":\^\*" : ":kissing_heart:",    # :^*
     r">:P" : ":stuck_out_tongue_winking_eye:",    # >:P
     r"X-P" : ":stuck_out_tongue_winking_eye:",    # X-P
     r"x-p" : ":stuck_out_tongue_winking_eye:",    # x-p
@@ -65,8 +65,8 @@ emoticon_to_label = {
     r";-\(" : ":cry:",    # ;-(
     r">.<" : ":persevere:",    # >.<
     r"D:" : ":fearful:",    # D:
-    r":$" : ":flushed:",    # :$
-    r"=$" : ":flushed:",    # =$
+    r":\$" : ":flushed:",    # :$
+    r"=\$" : ":flushed:",    # =$
     r"#-\)+" : ":dizzy_face:",    # #-)
     r"#\)+" : ":dizzy_face:",    # #)
     r"%-\)+" : ":dizzy_face:",    # %-)
@@ -82,7 +82,7 @@ emoticon_to_label = {
     r"0:3" : ":innocent:",    # 0:3
     r"0:-\)+" : ":innocent:",    # 0:-)
     r"0:\)+" : ":innocent:",    # 0:)
-    r"0;^\)+" : ":innocent:",    # 0;^)
+    r"0;\^\)+" : ":innocent:",    # 0;^)
     r"O:-\)+" : ":innocent:",    # O:-)
     r"O:\)+" : ":innocent:",    # O:)
     r"O;-\)+" : ":innocent:",    # O;-)

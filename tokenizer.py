@@ -1,7 +1,8 @@
 import string, re, emoji
 from utils.translate_emoticon import emoticon_to_label
 from utils.translate_emoji import emoji_to_label
-from utils.nltk_stopwords import stopwords
+from nltk.corpus import stopwords
+from nltk.stem.snowball import SnowballStemmer
 
 
 class Tokenizer():
@@ -29,9 +30,13 @@ class Tokenizer():
 
     def __init__(self):
         self.punct = string.punctuation
+        self.stopwords = stopwords.words('english')
+        self.stemmer = SnowballStemmer('english')
+
 
     def get_tokens(self, text,
             lowercase = False,
+            stem = False,
             replace_emojis = False,
             replace_num = False,
             remove_stopw = False,
@@ -43,13 +48,13 @@ class Tokenizer():
 
         # Codify emoticons as tokens
         for emoticon in emoticon_to_label.keys():
-            if replace_emojis:
-                # Replace with labels (eg ":-)" > "[#joy#]")
-                replace_by = '[#{}#]'.format(emoticon_to_label[emoticon][1:-1])
-            else:
-                replace_by = '[#{}#]'.format(emoticon)
-            text = re.sub(emoticon, replace_by, text)
-
+            if re.search(emoticon, text):
+                if replace_emojis:
+                    # Replace with labels (eg ":-)" > "[#joy#]")
+                    replace_by = '[#{}#]'.format(emoticon_to_label[emoticon][1:-1])
+                else:
+                    replace_by = '[#{}#]'.format(emoticon)
+                text = re.sub(emoticon, replace_by, text)
         tokens = text.split()
         result = []
 
@@ -111,28 +116,37 @@ class Tokenizer():
                         new_token += char
                 if new_token:
                     result.append((new_token, 'word'))
-            # Remove stopwords
-            if remove_stopw:
-                result = self.remove_stopwords(result)
+
+        # Remove stopwords
+        if remove_stopw:
+            result = self.remove_stopwords(result)
+
+        # Stem
+        if stem:
+            result = self.get_stems(result)
+
         return result
 
 
     def remove_stopwords(self, word_list):
         processed_word_list = []
         for word in word_list:
-            if word[0].lower() not in stopwords:
+            if word[1] == 'word' and word[0].lower() not in self.stopwords:
+                processed_word_list.append(word)
+            elif word[1] != 'word':
                 processed_word_list.append(word)
         return processed_word_list
 
 
     def get_terms(self, text,
             lowercase = False,
+            stem = False,
             replace_emojis = False,
             replace_num = False,
             remove_stopw = False,
             remove_punct = False ):
 
-        tokens = self.get_tokens(text, lowercase, replace_emojis,
+        tokens = self.get_tokens(text, lowercase, stem, replace_emojis,
             replace_num, remove_stopw, remove_punct)
         unique_tokens = []  # list of strings
         terms = []  # list of tuples
@@ -143,12 +157,26 @@ class Tokenizer():
         return terms
 
 
+    def get_stems(self, tokens):
+        stemmed_tokens = []
+        for token in tokens:
+            if token[1] == 'word':
+                new_token = self.stemmer.stem(token[0])
+                if new_token:
+                    stemmed_tokens.append((new_token, 'word'))
+                else:
+                    stemmed_tokens.append(token)
+            else:
+                stemmed_tokens.append(token)
+        return stemmed_tokens
+
+
 if __name__ == '__main__':
 
     tokenizer = Tokenizer()
-    test_sentence = 'HeLlO\t,  WoRld! I\'m <33333 :)))) [NEWLINE] >:\ 🤠 🙂 😃😄😆😍'
-    tokens = tokenizer.get_terms(test_sentence, lowercase=True,
-        remove_stopw = True, remove_punct=True, replace_emojis=True)
+    test_sentence = 'HeLlO\t,  WoRld! I\'m tired of losers <33333 :)))) [NEWLINE] >:\ 🤠 🙂 😃😄😆😍'
+    tokens = tokenizer.get_tokens(test_sentence, lowercase=True, stem=True,
+        remove_stopw = True, replace_emojis=True)
     print('Tuples tokens ({}):\n{}\n'.format(len(tokens), tokens))
     print('String tokens:'.format(len(tokens)))
     print('"{}"\n'.format('" "'.join(t[0] for t in tokens)))
