@@ -13,9 +13,6 @@ class Featurer():
 
     :Expected input:
         - corpus -- an instance of class Corpus
-        - stopwords_perc -- (optional) how strict to be with stopwords, must be
-        0 ≤ k ≤ corpus size. E.g. if value is 10, which means that terms with a
-        document frequency ≥ (corpus size / 10) are considered stopwords.
 
         when extract() is called:
         - feature_type -- type of features to be extracted
@@ -26,7 +23,7 @@ class Featurer():
         - tweet.get_features() -- dict of features and values for each tweet
 
     :Usage:
-        features = Featurer(corpus, stopwords_perc)
+        features = Featurer(corpus)
         features.extract(feature_type)
 
     :Options:
@@ -38,10 +35,10 @@ class Featurer():
             -- bigram
     """
 
-    def __init__(self, corp=None, stopwords_perc=0, bigram=False):
+    def __init__(self, corp=None, bigram=False):
 
         """
-        Greacefully exit if parameters are invalid
+        Greacefully exit if corpus is not provided
         """
         if not corp or not isinstance(corp, Corpus):
             raise ValueError('\nMissing or invalid argument:\'corpus\'\n{}'
@@ -56,8 +53,6 @@ class Featurer():
         self._corpus = corp                 # iterable collection of tweets
         self._size = 0                      # corpus size = nr of tweets
         self._term_idfs = {}                # dict with term-idf-score pairs
-        self._stopwords = []                # terms with highest df-score
-        self._threshold = stopwords_perc    # how strict to be with stopwords
         self._main(bigram)                  # start the fun
 
 
@@ -67,21 +62,19 @@ class Featurer():
         are extracted:
         (1) counts collection size,
         (2) extracts list of all terms from colection (a.k.a. "feature names"),
-        (3) sorts these terms according to df,
-        (4) generates stopwords, i.e. words with highest df (by default this is
-            df >= collection size / 10).
+        (3) sorts these terms according to df
         """
         if bigram:
             self._extract_bigram_labels()
         else:
-            self._extract_idf()  # gets us size, terms, idf scores and stopwords
+            self._extract_idf()  # gets us size, terms and idf scores
 
 
     def _extract_idf(self):
         """
         Extracts terms from corpus and adds them to self.__term_idfs. Calculates
         df score (=document frequency, i.e. number of tweets in which the term
-        occurs). Words with highest df are dealt with as stopwords. Finally df's
+        occurs). Finally df's
         are converted to idf's (=inverted df, i.e. documents with low df get a
         higher score).
         """
@@ -92,21 +85,10 @@ class Featurer():
             self._size += 1
             terms = Tokenizer().get_terms(tweet.get_text())
             for term in terms:
-                if term not in term_dfs:
-                    term_dfs[term] = 1
+                if term[0] not in term_dfs:
+                    term_dfs[term[0]] = 1
                 else:
-                    term_dfs[term] += 1
-
-        # Remove stopwords
-        if (self._threshold != 0):
-            threshold = self._size / self._threshold
-            sorted_dfs = sorted(term_dfs.items(), key=itemgetter(1), reverse=True)
-            for term_df in sorted_dfs:
-                if term_df[1] < threshold:  # Stop if term freq is less than threshold
-                    break
-                else:
-                    self._stopwords.append(term_df[0])
-                    del term_dfs[term_df[0]]
+                    term_dfs[term[0]] += 1
 
         #  Convert df's into idf's (inverted df)
         for term in term_dfs.keys():
@@ -123,11 +105,13 @@ class Featurer():
         bigram_labels = {}
         for tweet in self._corpus:
             self._size += 1
-            tokens = Tokenizer().get_tokens(tweet.get_text())
+            # options are for DEBUG
+            tokens = Tokenizer().get_tokens(tweet.get_text(), stem=True,
+                remove_stopw = True, replace_emojis=True, replace_num=True)
             previous = '<BEGIN>'
             for token in tokens:
-                bigram = previous + ' ' + token
-                previous = token
+                bigram = previous + ' ' + token[0]
+                previous = token[0]
                 if bigram not in bigram_labels.keys():
                     bigram_labels[bigram] = None
         bigram_labels['THETA'] = None
@@ -161,11 +145,11 @@ class Featurer():
         term_tfs = {}
         tokens = Tokenizer().get_tokens(tweet.get_text())
         for token in tokens:
-            if token in self._term_idfs.keys():
-                if token in term_tfs:
-                    term_tfs[token] += 1
+            if token[0] in self._term_idfs.keys():
+                if token[0] in term_tfs:
+                    term_tfs[token[0]] += 1
                 else:
-                    term_tfs[token] = 1
+                    term_tfs[token[0]] = 1
         # Normalize by total number of tokens in tweet
         for term in term_tfs:
             term_tfs[term] /= len(tokens)
@@ -184,9 +168,9 @@ class Featurer():
         binaries = {}
         tokens = Tokenizer().get_tokens(tweet.get_text())
         for token in tokens:
-            if token in self._term_idfs.keys():
-                if token not in binaries:
-                    binaries[token] = 1
+            if token[0] in self._term_idfs.keys():
+                if token[0] not in binaries:
+                    binaries[token[0]] = 1
         binaries['THETA'] = 1
         return binaries
 
@@ -195,11 +179,11 @@ class Featurer():
         counts = {}
         tokens = Tokenizer().get_tokens(tweet.get_text())
         for token in tokens:
-            if token in self._term_idfs.keys():
-                if token in counts:
-                    counts[token] += 1
+            if token[0] in self._term_idfs.keys():
+                if token[0] in counts:
+                    counts[token[0]] += 1
                 else:
-                    counts[token] = 1
+                    counts[token[0]] = 1
         counts['THETA'] = 1
         return counts
 
@@ -208,11 +192,11 @@ class Featurer():
         frequencies = {}
         tokens = Tokenizer().get_tokens(tweet.get_text())
         for token in tokens:
-            if token in self._term_idfs.keys():
-                if token in frequencies:
-                    frequencies[token] += 1
+            if token[0] in self._term_idfs.keys():
+                if token[0] in frequencies:
+                    frequencies[token[0]] += 1
                 else:
-                    frequencies[token] = 1
+                    frequencies[token[0]] = 1
         for token in frequencies:
             frequencies[token] /= len(tokens)
         frequencies['THETA'] = 1
@@ -221,11 +205,12 @@ class Featurer():
 
     def _extract_bigram(self, tweet):
         bigrams = {}
-        tokens = Tokenizer().get_tokens(tweet.get_text())
+        tokens = Tokenizer().get_tokens(tweet.get_text(), stem=True,
+            remove_stopw = True, replace_emojis=True, replace_num=True)
         previous = '<BEGIN>'
         for token in tokens:
-            bigram = previous + ' ' + token
-            previous = token
+            bigram = previous + ' ' + token[0]
+            previous = token[0]
             if bigram not in bigrams:
                 bigrams[bigram] = 1
             else:
