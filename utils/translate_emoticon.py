@@ -12,9 +12,11 @@ emoticon_to_label = {
     r"</3+" : ":broken_heart:",    # </3
     r":'\)+" : ":joy:",    # :')
     r":'-\)+" : ":joy:",    # :'-)
-    r":D" : ":smiley:",    # :D
-    r":-D" : ":smiley:",    # :-D
-    r"=d" : ":smiley:",    # =d
+    r"^^" : ":joy:",    # ^^
+    r"^_^" : ":joy:",    # ^_^
+    r":D" : ":smile:",    # :D
+    r":-D" : ":smile:",    # :-D
+    r"=d" : ":smile:",    # =d
     r":\)+" : ":slight_smile:",    # :)
     r":-\)+" : ":slight_smile:",    # :-)
     r"=]" : ":slight_smile:",    # =]
@@ -94,9 +96,7 @@ emoticon_to_label = {
     r"8-\)+" : ":sunglasses:",    # 8-)
     r"B-D" : ":sunglasses:",    # B-D
     r"8-D" : ":sunglasses:",    # 8-D
-    r"-_-" : ":expressionless:",    # -_-
-    r"-__-" : ":expressionless:",    # -__-
-    r"-___-" : ":expressionless:",    # -___-
+    r"-_+-" : ":expressionless:",    # -_-
     r">:\\" : ":confused:",    # >:\
     r":P" : ":stuck_out_tongue:",    # >:/
     r":-P" : ":stuck_out_tongue:",    # :-/
