@@ -1,4 +1,4 @@
-# Braint: Tweeter Emotion classifier
+# Braint: Twitter Emotion classifier
 
 
 ### Structure and Explanation
