@@ -1,4 +1,5 @@
 from tweet import Tweet
+from random import shuffle
 
 class Corpus(object):
     """ A datastructure to store Tweet objects.
@@ -40,7 +41,7 @@ class Corpus(object):
         else:
             self.__curr += 1
             return self.get_ith(self.__curr - 1)
-    
+
     def __read_train_file(self, filename_tweets : str):
         with open (filename_tweets, 'r') as train_file:
             for line in train_file:
@@ -82,3 +83,6 @@ class Corpus(object):
                 A tweet object.
         """
         return self.__corpus[i]
+
+    def shuffle(self):
+        shuffle(self.__corpus)

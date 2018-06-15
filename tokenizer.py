@@ -189,7 +189,7 @@ if __name__ == '__main__':
     test_sentence = 'HeLlO\t,  WoRld! I\'m Tired of losers <33333 1984 :)))) [NEWLINE] >:\ 🤠 🙂 😃😄😆😍'
 
     tokens = tokenizer.get_tokens(test_sentence, stem=False, lowercase=False,
-        remove_stopw = True, replace_emojis=True)
+        remove_stopw = True, replace_emojis=False)
 
     print('Tuples tokens ({}):\n{}\n'.format(len(tokens), tokens))
     print('String tokens:'.format(len(tokens)))

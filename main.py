@@ -1,5 +1,3 @@
-from evaluator.scorer import Scorer
-from evaluator.result import Result
 from corpus import Corpus
 from featurer import Featurer
 from multiclass_perceptron import MulticlassPerceptron
@@ -19,7 +17,7 @@ def main():
     classes = ['joy', 'anger', 'fear', 'surprise', 'disgust', 'sad']
     #types = [ 'binary', 'count', 'frequency', 'tf-idf']
     types = ['bigram']
-    iterations = 25
+    iterations = 150
     train_data = 'data/train'
     test_data = 'data/test'
 
@@ -27,7 +25,7 @@ def main():
     bold = '\033[1m'
     unbold = '\033[0m'
     print_braint()
-    print('{}Preparing to run Brant{}, using {} feature type(s), {} iterations each.'.format(
+    print('{}Preparing to run Braint{}, using {} feature type(s), {} iterations each.'.format(
         bold, unbold, len(types), iterations))
 
     # Initiate corpora
@@ -45,25 +43,13 @@ def main():
         features_test.extract(type)
 
         # Filenames used to save data
-        fn_acc = 'experiment_{}_accuracies'.format(type)
-        fn_weights = 'experiment_{}_weights'.format(type)
-        fn_fscores = 'experiment_{}_fscores'.format(type)
+        fn_weights = 'experiment_{}_weights_lr0_05'.format(type)
+        fn_scores = 'experiment_{}_scores_lr0_05'.format(type)
 
         # Create and train the model
-        print('Training Model...')
+        print('Training and testing model...')
         classifier = MulticlassPerceptron(classes, train_corpus.get_all_feature_names())
-        classifier.train(iterations, train_corpus, fn_acc, fn_weights)
-        result = Result()
-
-        print('Testing Model. Preparing results...')
-        # Test the model using saved weights for each iteration
-        with open(fn_weights, 'r') as f:
-            for w in f:
-                weight = json.loads(w)
-                classifier.test(test_corpus, weight)
-                scores = Scorer(test_corpus)
-                result.show(scores)
-                result.write(scores, fn_fscores)
+        classifier.train_and_test(iterations, train_corpus, test_corpus, fn_weights, fn_scores)
 
 
 def print_braint():

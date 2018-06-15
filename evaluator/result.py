@@ -23,26 +23,21 @@ class Result():
                          'angP',  # Precision for Anger
                          'angR'   # Recall for Anger
                          ]
-        self.header_printed = False
+        self.print_header()
 
 
     def print_header(self):
         bold = '\033[1m'
         unbold = '\033[0m'
-        header = '{}Fmac\tFmic{}\t{}'.format(
+        header = 'Conv\t{}Fmac\tFmic{}\t{}'.format(
             bold, unbold, '\t'.join([l for l in self.labels]))
         print(header)
 
 
-    def show(self, score):
-        if (self.header_printed):
-            print(score)
-        else:
-            self.print_header()
-            self.header_printed = True
-            print(score)
+    def show(self, convergence, score):
+        print(score.__str__(convergence))
 
 
-    def write(self, score, filename):
+    def write(self, convergence, score, filename):
         with open(filename, 'a') as f:
-            f.write(score.__str__(use_bold=False) + '\n')
+            f.write(score.__str__(convergence, use_bold=False) + '\n')

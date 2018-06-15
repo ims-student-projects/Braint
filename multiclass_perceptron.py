@@ -1,24 +1,26 @@
 from operator import itemgetter
 from tweet import Tweet
+from evaluator.result import Result
+from evaluator.scorer import Scorer
 import json
 
 class MulticlassPerceptron(object):
-    """ A perceptron for multiclass classification.
+    """
+    A perceptron for multiclass classification.
+
+        Args:
+            classes: a list contaning the class names as strings
+            feature_names: a list containing all names of the features that are used.
     """
 
     def __init__(self, classes, feature_names):
-        """ Inits the MulticlassPerceptron.
-            Args:
-                classes: a list contaning the class names as strings
-                feature_names: a list containing all names of the features that are used.
-        """
-        self.classes = classes
-        # dict of dicts: ("name of class" --> ("name of feature" --> weight))
-        self.weights = {}
-        for c in self.classes:
-            self.weights[c] = {}
-            for feature in feature_names:
-                self.weights[c][feature] = 0 # TODO: initialize weights randomly
+        self.lr = 0.05  # Learning rate
+        self.classes = classes  # Names of emotions
+        # Initialize weights as dict of dicts: ("class" --> ("feature" --> weight))
+        self.weights = {c:{f:0 for f in feature_names} for c in classes}
+        self.averaged_weights = {c:{f:0 for f in feature_names} for c in classes}
+        self.num_steps = 0  # Used to average weights
+        self.curr_step = 0  # Used to average weights
 
 
     def __update_weights(self, features, prediction, true_label):
@@ -28,15 +30,20 @@ class MulticlassPerceptron(object):
                 prediction: the predicted label as a string
                 true_label: the true label as a string
         """
-        if prediction != true_label: # only update if prdiction was wrong
+        if prediction != true_label: # only update if prediction was wrong
+            # Calculate rate for averaging
+            r = (self.curr_step / self.num_steps) if self.curr_step != 0 else 0
             for feat in features:
+                z = (features[feat] * self.lr)
+                avg_z = (r*z)
                 # increase weights of features of example in correct class as these are important for classification
-                self.weights[true_label][feat] += 1
+                self.weights[true_label][feat] += z
+                self.averaged_weights[true_label][feat] += avg_z
                 # decrease weights of features of example in wrongly predicted class
-                self.weights[prediction][feat] -= 1
+                self.weights[prediction][feat] -= z
+                self.averaged_weights[prediction][feat] -= avg_z
 
-
-    def __predict(self, features, example, weights=None):
+    def __predict(self, features, example, test_mode=False):
         """ Returns a prediction for the given features. Calculates activation
             for each class and returns the class with the highest activation.
             Args:
@@ -45,14 +52,15 @@ class MulticlassPerceptron(object):
             Returns:
                 a tuple containg (predicted_label, activation)
         """
+        weights = self.averaged_weights if test_mode else self.weights
         activations = []
         # calculate activation for each class
         for c in self.classes:
             curr_activation = 0
             for feat in features:
                 # necessary if test examples contain unseen features - is there a better way to handle this?
-                if feat in self.weights[c]:
-                    curr_activation += self.weights[c][feat] * features[feat]
+                if feat in weights[c]:
+                    curr_activation += weights[c][feat] * features[feat]
             activations.append((c, curr_activation))
         # highest activation in activation[0]
         activations.sort(key=itemgetter(1), reverse=True)
@@ -61,7 +69,14 @@ class MulticlassPerceptron(object):
         return activations[0]
 
 
-    def train(self, num_iterations, examples, fn_acc=None, fn_weights=None):
+    def train_and_test(self, epochs, train_corpus, test_corpus, \
+                        fn_weights=None, fn_scores=None):
+        result = Result()
+        self.train(epochs, train_corpus, test_corpus, fn_weights, fn_scores, result)
+
+
+    def train(self, num_iterations, train_corpus, test_corpus=None, \
+            fn_weights=None, fn_scores=None, result=None):
         """ Function to train the MulticlassPerceptron. Optionally writes weights
             and accuracy into files.
             Args:
@@ -70,29 +85,45 @@ class MulticlassPerceptron(object):
                 fn_acc: file where to write accuracy scores for each iteration
                 fn_acc: file where to write weights for each iteration
         """
-        accuracies = []
+        #print_progressbar(0, num_iterations)
+        self.num_steps = num_iterations * train_corpus.length()
+        self.curr_step = num_iterations * train_corpus.length()
+        acc = 0  # accuracy score
         for i in range(num_iterations):
-            corr = 0  # correct predictions
-            for example in examples:
+            corr = 0  # correct predictions during current iteration
+            train_corpus.shuffle()  # shuffle tweets
+            for example in train_corpus:
                 true_label = example.get_gold_label()
                 tweet_features = example.get_features() # dict
                 prediction = self.__predict(tweet_features, example)
                 self.__update_weights(tweet_features, prediction[0], true_label)
-                # keep count of correct/incorrect predictions
+                self.curr_step -= 1
+                # Count of correct predictions
                 corr += 1 if true_label == prediction[0] else 0
 
-            # calculate accuracy score for iteration
-            acc = round((corr / examples.length()), 2)
-            accuracies.append(acc)
+            # Calculate accuracy score for current iteration
+            # This score shows how the model is converging
+            acc = round((corr / train_corpus.length()), 2)
 
-            # if requested, write current weights into file
-            if fn_weights:
-                self.save_model(fn_weights)
+            # Test on current weights
+            if test_corpus:
+                self.test(test_corpus, test_mode=True)
+                scores = Scorer(test_corpus)
+                result.show(acc, scores)
 
-        # if requested, write accuracy results to file
-        if fn_acc:
-            with open(fn_acc, 'w') as f:
-                f.write('\n'.join([str(a) for a in accuracies]))
+                #self.test(test_corpus, test_mode=True)
+                #scores = Scorer(test_corpus)
+                #result.show(acc, scores)
+                #print('\n')
+
+                if fn_scores:
+                    result.write(acc, scores, fn_scores)
+
+            #print_progressbar(i + 1, num_iterations)
+
+        # Write final weights to file
+        if fn_weights:
+            self.save_model(fn_weights)
 
 
     def __debug_print_prediction(self, example, prediction):
@@ -102,7 +133,7 @@ class MulticlassPerceptron(object):
         print(prediction)
 
 
-    def test(self, examples, weights=None):
+    def test(self, test_corpus, test_mode=False): #weights=None,
         """
         Will use custom weights is passed by argument, otherwise class weights
         will be used.
@@ -112,15 +143,17 @@ class MulticlassPerceptron(object):
         weights: (optional) use custom weights
         """
         # reset class weights if custom weights are provided
-        if weights:
-            self.load_model(weights)
+        #if weights:
+        #    self.load_model(weights)
 
-        for example in examples:
+        for example in test_corpus:
             tweet_features = example.get_features() # dict
-            prediction = self.__predict(tweet_features, example, weights)
+            prediction = self.__predict(tweet_features, example, test_mode=True)
 
 
     def save_model(self, filename):
+        with open(filename + '_averaged', 'a') as w:
+            w.write(json.dumps(self.averaged_weights) + '\n')
         with open(filename, 'a') as w:
             w.write(json.dumps(self.weights) + '\n')
 

@@ -70,6 +70,20 @@ class Featurer():
             self._extract_idf()  # gets us size, terms and idf scores
 
 
+    def extract(self, type=None):
+        """
+        Extract features for each tweet and send to corresponding Tweet object.
+        If no or invalid type is given as parameter, print a soft warning.
+        """
+        if not type or type not in self._types.keys():
+            print('invalid feature type {}. Ignoring request.'.format(type))
+        else:
+            for tweet in self._corpus:
+                 # Fabricator to use method matching with requested feature type
+                features = self._types[type](tweet)
+                tweet.set_features(features)
+
+
     def _extract_idf(self):
         """
         Extracts terms from corpus and adds them to self.__term_idfs. Calculates
@@ -106,8 +120,8 @@ class Featurer():
         for tweet in self._corpus:
             self._size += 1
             # options are for DEBUG
-            tokens = Tokenizer().get_tokens(tweet.get_text(), stem=True,
-                remove_stopw = True, replace_emojis=True, replace_num=True)
+            tokens = Tokenizer().get_tokens(tweet.get_text(), stem=False, lowercase=False,
+                remove_stopw=False, replace_emojis=True, replace_num=False)
             previous = '<BEGIN>'
             for token in tokens:
                 bigram = previous + ' ' + token[0]
@@ -120,20 +134,6 @@ class Featurer():
         self._corpus.set_all_feature_names(bigram_labels.keys())
         with open('experiment_bigram_labels', 'w') as f:
             f.write('", "'.join(bigram_labels.keys()))
-
-
-    def extract(self, type=None):
-        """
-        Extract features for each tweet and send to corresponding Tweet object.
-        If no or invalid type is given as parameter, print a soft warning.
-        """
-        if not type or type not in self._types.keys():
-            print('invalid feature type {}. Ignoring request.'.format(type))
-        else:
-            for tweet in self._corpus:
-                 # Fabricator to use method matching with requested feature type
-                features = self._types[type](tweet)
-                tweet.set_features(features)
 
 
     def _extract_tf_idf(self, tweet):
@@ -205,8 +205,8 @@ class Featurer():
 
     def _extract_bigram(self, tweet):
         bigrams = {}
-        tokens = Tokenizer().get_tokens(tweet.get_text(), stem=True,
-            remove_stopw = True, replace_emojis=True, replace_num=True)
+        tokens = Tokenizer().get_tokens(tweet.get_text(), stem=False, lowercase=False,
+            remove_stopw=False, replace_emojis=True, replace_num=False)
         previous = '<BEGIN>'
         for token in tokens:
             bigram = previous + ' ' + token[0]
