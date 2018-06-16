@@ -10,22 +10,22 @@ and parameters.
 
 ### Experiments with Unigrams
 
- | Model   | LR  | Feature(s)        | Tokenization        | Epochs    | Conv      | Macro F       |
- |----------------------|-------------------|---------------------|---------------------|---------------------|
- | Baseline	| 0.1 | binary | Basic (split by space / punct) | 150 | 0.8 |0.382 |
- | Baseline	| 0.1 | count | Basic | 150 | 0.78 |0.412 |
- | Baseline	| 0.1 | tf-idf | Basic  | 150 | 0.79 | 0.401 |
- | Baseline	| 0.1 | frequency | Basic  | 150 | 0.57 |0.436 |
- | +Shuffle	| 0.1 | frequency | Basic  | 150 | 0.57 |0.436 |
- | +Avg	| 0.1 | frequency | Basic  | 150 | 0.57 |0.509 |
- | +Shuffle, +Avg	| 0.1 | frequency | Basic  | 150 | 0.56 |0.52 |
- | +Shuffle, +Avg	| 0.5 | frequency | Basic  | 150 | 0.56 |0.21 |
+ | Model             | LR             | Feature(s)       | Tokenization     | Epochs           | Conv             | Macro F          |
+ |-------------------|----------------|------------------|------------------|------------------|------------------|------------------|
+ | Baseline	         | 0.1            | binary           | Basic (split by space / punct)| 150 | 0.8              | 0.382            |
+ | Baseline	         | 0.1            | count            | Basic            | 150              | 0.78             | 0.412            |
+ | Baseline	         | 0.1            | tf-idf           | Basic            | 150              | 0.79             | 0.401            |
+ | Baseline	         | 0.1            | frequency        | Basic            | 150              | 0.57             | 0.436            |
+ | +Shuffle	         | 0.1            | frequency        | Basic            | 150              | 0.57             | 0.436            |
+ | +Avg	             | 0.1            | frequency        | Basic            | 150              | 0.57             | 0.509            |
+ | +Shuffle, +Avg	   | 0.1            | frequency        | Basic            | 150              | 0.56             | 0.52             |
+ | +Shuffle, +Avg  	 | 0.5            | frequency        | Basic            | 150              | 0.56             | 0.21             |
 
 
 ### Experiments with Birgrams
 
-| Model   | LR  | Feature(s)        | Tokenization        | Epochs    | Conv      | Macro F       |
-|----------------------|-------------------|---------------------|---------------------|---------------------|
+| Model             | LR             | Feature(s)       | Tokenization     | Epochs           | Conv             | Macro F          |
+|-------------------|----------------|------------------|------------------|------------------|------------------|------------------|
 | Baseline | 0.1 | Bigram (frequency) | Basic | | | |
 | Baseline | 0.1 | Bigram  | Lowercase | | | |
 | Baseline | 0.1 | Bigram  | Remove stopwords | | | |
