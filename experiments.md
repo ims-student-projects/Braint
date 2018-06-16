@@ -19,7 +19,7 @@ and parameters.
  | +Shuffle	         | 0.1            | frequency        | Basic            | 150              | 0.57             | 0.436            |
  | +Avg	             | 0.1            | frequency        | Basic            | 150              | 0.57             | 0.509            |
  | +Shuffle, +Avg	   | 0.1            | frequency        | Basic            | 150              | 0.56             | 0.52             |
- | +Shuffle, +Avg  	 | 0.5            | frequency        | Basic            | 150              | 0.56             | 0.21             |
+ | +Shuffle, +Avg  	 | 0.5            | frequency        | Basic            | 150              | 0.56             | 0.521             |
 
 
 ### Experiments with Birgrams
@@ -32,6 +32,8 @@ and parameters.
 | Baseline | 0.1 | Bigram  | Stem | | | |
 | Baseline | 0.1 | Bigram  | Convert emojis & emoticons | | | | |
 
+
+## Details & Charts
 ### Binary. Tokenization: basic
 
 ![convergence chart](results/experiment_bsl_binary.png)
@@ -116,7 +118,7 @@ Conv	Fmac	Fmic	supP	supR	disP	disR	feaP	feaR	sadP	sadR	joyP	joyR	angP	angR
 
 
 
-### Frequency. Tokenization: basic, +Averaging+Shuffling. LN: 0.5
+### Frequency. Tokenization: basic, +Averaging+Shuffling. LR: 0.5
 
 ![convergence chart](results/experiment_av-shfl5_frequency.png)
 
