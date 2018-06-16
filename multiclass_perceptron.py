@@ -13,8 +13,8 @@ class MulticlassPerceptron(object):
             feature_names: a list containing all names of the features that are used.
     """
 
-    def __init__(self, classes, feature_names):
-        self.lr = 0.05  # Learning rate
+    def __init__(self, classes, feature_names, lr=0.1):
+        self.lr = lr  # Learning rate
         self.classes = classes  # Names of emotions
         # Initialize weights as dict of dicts: ("class" --> ("feature" --> weight))
         self.weights = {c:{f:0 for f in feature_names} for c in classes}
@@ -69,11 +69,11 @@ class MulticlassPerceptron(object):
         return activations[0]
 
 
-    def train_and_test(self, epochs, train_corpus, test_corpus, \
-                        fn_weights=None, fn_scores=None):
+    def train_and_test(self, epochs, train_corpus, test_corpus, fn_weights=None,\
+                        fn_scores=None, token_params=None, types=None):
         result = Result()
         self.train(epochs, train_corpus, test_corpus, fn_weights, fn_scores, result)
-
+        result.draw_graph(types, token_params)
 
     def train(self, num_iterations, train_corpus, test_corpus=None, \
             fn_weights=None, fn_scores=None, result=None):

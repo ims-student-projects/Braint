@@ -150,7 +150,6 @@ class Tokenizer():
                 new_token = (token, 'numeric')
         else:
             new_token = (token, 'other')  # Shouldn't happen, but to be save
-            print(new_token)
         return new_token
 
 
@@ -205,6 +204,7 @@ if __name__ == '__main__':
     test_2 = "much♡[NEWLINE]•2 … …texting&driving he's @USERNAME works. A[NEWLINE][NEWLINE]As Mom:\"its pretty done."
     test_3 = '#WeLoveYouJackson[NEWLINE]#ItsOnlyGOT7'
     test_4 = '#Love#Love @vgratian'
+    test_5 = '’…”“£—＠→♡°⁎«＼｜／'
     tokens = tokenizer.get_tokens(test_4, stem=False, lowercase=False,
         remove_stopw = False, replace_emojis=True)
 

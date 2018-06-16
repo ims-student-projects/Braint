@@ -35,7 +35,7 @@ class Featurer():
             -- bigram
     """
 
-    def __init__(self, corp=None, bigram=False):
+    def __init__(self, corp=None, token_params=None, bigram=False):
 
         """
         Greacefully exit if corpus is not provided
@@ -50,6 +50,7 @@ class Featurer():
                         'frequency': self._extract_frequency,
                         'tf-idf': self._extract_tf_idf,
                         'bigram': self._extract_bigram}
+        self._token_params = token_params   # tokenizer paramters, tuple
         self._corpus = corp                 # iterable collection of tweets
         self._size = 0                      # corpus size = nr of tweets
         self._term_idfs = {}                # dict with term-idf-score pairs
@@ -67,7 +68,7 @@ class Featurer():
         if bigram:
             self._extract_bigram_labels()
         else:
-            self._extract_idf()  # gets us size, terms and idf scores
+            self._extract_idf()  # gets size, terms and idf scores
 
 
     def extract(self, type=None):
@@ -97,6 +98,7 @@ class Featurer():
         term_dfs = {}
         for tweet in self._corpus:
             self._size += 1
+            #terms = Tokenizer().get_terms(tweet.get_text(), **self._token_params)
             terms = Tokenizer().get_terms(tweet.get_text())
             for term in terms:
                 if term[0] not in term_dfs:
@@ -120,8 +122,7 @@ class Featurer():
         for tweet in self._corpus:
             self._size += 1
             # options are for DEBUG
-            tokens = Tokenizer().get_tokens(tweet.get_text(), stem=False, lowercase=False,
-                remove_stopw=False, replace_emojis=True, replace_num=False)
+            tokens = Tokenizer().get_tokens(tweet.get_text(), **self._token_params)
             previous = '<BEGIN>'
             for token in tokens:
                 bigram = previous + ' ' + token[0]

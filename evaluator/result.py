@@ -1,3 +1,4 @@
+import matplotlib.pyplot as plt
 
 class Result():
     """
@@ -24,7 +25,23 @@ class Result():
                          'angR'   # Recall for Anger
                          ]
         self.print_header()
+        self.convergence = []
+        self.fmac = []
+        self.epochs = 0
 
+
+    def draw_graph(self, features, params):
+        fig, ax = plt.subplots(figsize=(14, 8))
+        ax.plot(self.convergence, label='Convergence (accuracy on train data)')
+        ax.plot(self.fmac,  label='Macro F-score (test data)')
+        ax.legend(loc='best')
+        plt.axis([0, self.epochs, 0, 1])
+        tp = ', '.join([str(p) for p in params if params[p]]) if params else None
+        plt.title('Tokenizer params: {}'.format(tp if tp else 'None'))
+        plt.suptitle('Braint. Epochs: {}. Features: {}'.format(self.epochs, ', '.join([f for f in features])), y=.95, fontsize=14)
+        plt.xlabel('Epochs')
+        plt.ylabel('Convergence / F-macro')
+        plt.show()
 
     def print_header(self):
         bold = '\033[1m'
@@ -34,10 +51,13 @@ class Result():
         print(header)
 
 
-    def show(self, convergence, score):
-        print(score.__str__(convergence))
+    def show(self, accuracy, score):
+        self.convergence.append(accuracy)
+        self.fmac.append(score.f_macro)
+        self.epochs += 1
+        print(score.__str__(accuracy))
 
 
-    def write(self, convergence, score, filename):
+    def write(self, accuracy, score, filename):
         with open(filename, 'a') as f:
-            f.write(score.__str__(convergence, use_bold=False) + '\n')
+            f.write(score.__str__(accuracy, use_bold=False) + '\n')
