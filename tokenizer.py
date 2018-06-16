@@ -149,7 +149,8 @@ class Tokenizer():
             else:
                 new_token = (token, 'numeric')
         else:
-            (token, 'other')  # Shouldn't happen, but to be save
+            new_token = (token, 'other')  # Shouldn't happen, but to be save
+            print(new_token)
         return new_token
 
 
