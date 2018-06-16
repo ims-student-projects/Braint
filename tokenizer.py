@@ -57,9 +57,9 @@ class Tokenizer():
                     replace_by = '[#{}#]'.format(emoticon)
                 text = re.sub(emoticon, replace_by, text)
 
-        # Remove newline symbol
+        # Replace newline symbols with whitespace
         if re.search('[NEWLINE]', text):
-            text = re.sub('\[NEWLINE\]', '', text)
+            text = re.sub('\[NEWLINE\]', ' ', text)
 
         # Split string and analyze each token seperately
         result = []
@@ -88,61 +88,69 @@ class Tokenizer():
                 for char in token:
                     # Character is punctuation
                     if char in self.punct:
-                        # Add symbol to result
-                        if not remove_punct:
-                            result.append((char, 'punctuation'))
                         # add preceding charachters to results, if any
                         if new_token:
                             result.append(self.add_new_token(new_token, replace_num))
                             new_token = ''
+                        # Add symbol to result, except # and @
+                        if char == '#' or char == '@':
+                            new_token += char
+                        elif not remove_punct:
+                            result.append((char, 'punctuation'))
                     # Character is common emoji
                     elif char in emoji_to_label.keys():
+                        # add preceding charachters to results, if any
+                        if new_token:
+                            result.append(self.add_new_token(new_token, replace_num))
+                            new_token = ''
+                        # add emoji
                         if replace_emojis:
                             emoji_text = emoji_to_label[char] # ignore columns
                             result.append((emoji_text[1:-1], 'emoji'))
                         else:
                             result.append((char, 'emoji'))
+                    # Character is uncommon emoji
+                    elif char in emoji.UNICODE_EMOJI.keys():
                         # add preceding charachters to results, if any
                         if new_token:
                             result.append(self.add_new_token(new_token, replace_num))
-                            new_token = ''
-                    # Character is uncommon emoji
-                    elif char in emoji.UNICODE_EMOJI.keys():
+                        # add emoji
                         if replace_emojis:
                             emoji_text = emoji.demojize(char) # ignore columns
                             result.append((emoji_text[1:-1], 'emoji'))
                         else:
                             result.append((char, 'emoji'))
-                        # add preceding charachters to results, if any
-                        if new_token:
-                            result.append(self.add_new_token(new_token, replace_num))
                             new_token = ''
                     # Character is alpha-numerical
                     else:
                         new_token += char
                 if new_token:
                     result.append(self.add_new_token(new_token, replace_num))
-
         # Remove stopwords
         if remove_stopw:
             result = self.remove_stopwords(result)
-
         # Stem
         if stem:
             result = self.get_stems(result)
-
         return result
 
 
     def add_new_token(self, token, replace_num):
-        if token.isalpha():
-            return (token, 'word')
+        new_token = ()
+        if token[0] == '#':
+            new_token = (token, 'hashtag')
+        elif token[0] == '@':
+            new_token = (token, 'username')
+        elif token.isalpha():
+            new_token = (token, 'word')
         elif token.isnumeric():
             if replace_num:
-                return ('<NUM>', 'numeric')
+                new_token = ('<NUM>', 'numeric')
             else:
-                return (token, 'numeric')
-        return (token, 'other')  # Shouldn't happen, but to be save
+                new_token = (token, 'numeric')
+        else:
+            (token, 'other')  # Shouldn't happen, but to be save
+        return new_token
 
 
     def remove_stopwords(self, word_list):
@@ -192,14 +200,14 @@ class Tokenizer():
 if __name__ == '__main__':
 
     tokenizer = Tokenizer()
-    test_1 = 'HeLlO\t,  WoRld! I\'m Tired of losers <33333 1984 :)))) [NEWLINE] >:\ 🤠 🙂 😃😄😆😍'
-    test_2 = "much♡[NEWLINE]•2 … …texting&driving he's @USERNAME works.[NEWLINE][NEWLINE]As Mom:\"its pretty done."
+    test_1 = 'HeLlO\t,  WoRld! I\'m Tired of lo/sers <33333 1984 :)))) [NEWLINE] >:\ 🤠 🙂 😃😄😆😍'
+    test_2 = "much♡[NEWLINE]•2 … …texting&driving he's @USERNAME works. A[NEWLINE][NEWLINE]As Mom:\"its pretty done."
     test_3 = '#WeLoveYouJackson[NEWLINE]#ItsOnlyGOT7'
     test_4 = '#Love#Love @vgratian'
-    tokens = tokenizer.get_tokens(test_2, stem=False, lowercase=False,
-        remove_stopw = False, replace_emojis=False)
+    tokens = tokenizer.get_tokens(test_4, stem=False, lowercase=False,
+        remove_stopw = False, replace_emojis=True)
 
-    print('Original input: {}\n'.format(test_2))
+    print('Original input: {}\n'.format(test_1))
     print('Tuples tokens ({}):\n{}\n'.format(len(tokens), tokens))
     print('String tokens:'.format(len(tokens)))
     print('"{}"\n'.format('" "'.join(t[0] for t in tokens)))
