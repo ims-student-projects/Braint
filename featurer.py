@@ -50,7 +50,7 @@ class Featurer():
                         'frequency': self._extract_frequency,
                         'tf-idf': self._extract_tf_idf,
                         'bigram': self._extract_bigram}
-        self._token_params = token_params   # tokenizer paramters, tuple
+        self._token_params = token_params   # tokenizer paramters, dict
         self._corpus = corp                 # iterable collection of tweets
         self._size = 0                      # corpus size = nr of tweets
         self._term_idfs = {}                # dict with term-idf-score pairs
@@ -98,8 +98,7 @@ class Featurer():
         term_dfs = {}
         for tweet in self._corpus:
             self._size += 1
-            #terms = Tokenizer().get_terms(tweet.get_text(), **self._token_params)
-            terms = Tokenizer().get_terms(tweet.get_text())
+            terms = Tokenizer().get_terms(tweet.get_text(), **self._token_params)
             for term in terms:
                 if term[0] not in term_dfs:
                     term_dfs[term[0]] = 1

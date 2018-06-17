@@ -23,14 +23,14 @@ def main():
     # Tokenizer parameters
     token_params = { 'lowercase':False,
                     'stem':False,
-                    'replace_emojis':False,
-                    'replace_num':False,
+                    'replace_emojis':True,
+                    'replace_num':True,
                     'remove_stopw':False,
                     'remove_punct':False }
 
     # Perceptron parameters
     epochs = 150
-    learning_rate = 0.5
+    learning_rate = 0.3
 
     # Print info
     print_braint(types, epochs)
@@ -42,6 +42,8 @@ def main():
     # Initialize feature extractors
     features_train = Featurer(train_corpus, token_params, bigram=False)
     features_test = Featurer(test_corpus, token_params, bigram=False)
+    print('Tokenizing tweets... Parameters: {}'.format
+            (', '.join([p for p in token_params if token_params[p]])))
 
     # Extract features of each type
     for type in types:
@@ -50,8 +52,8 @@ def main():
         features_test.extract(type)
 
         # Filenames used to save data
-        fn_weights = 'experiment_av-shfl5_{}_weights'.format(type)
-        fn_scores = 'experiment_av-shfl5_{}_scores'.format(type)
+        fn_weights = 'results/experiment_remoji_rnum_{}_weights'.format(type)
+        fn_scores = 'results/experiment_remoji_rnum_{}_scores'.format(type)
 
         # Create and train the model
         print('Training and testing model...')
