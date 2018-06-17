@@ -15,7 +15,7 @@ and parameters.
  | Baseline	         | 0.1    | binary     | Basic (split by space / punct)| 150 | 0.8  | __0.382__    |
  | Baseline	         | 0.1    | count         | Basic            | 150        | 0.78    | __0.412__    |
  | Baseline	         | 0.1    | frequency     | Basic            | 150        | 0.57    | __0.436__    |
- | +Shuffle	         | 0.1    | frequency     | Basic            | 150        | 0.57    | __0.436__    |
+ | +Shuffle	         | 0.1    | frequency     | Basic            | 150        | 0.56    | __0.412__    |
  | +Avg	             | 0.1    | frequency     | Basic            | 150        | 0.57    | __0.509__    |
  | +Shuffle, +Avg	   | 0.1    | frequency     | Basic            | 150        | 0.56    | __0.52__     |
  | +Shuffle, +Avg	   | 0.3    | frequency     | Basic            | 150        | 0.56    | __0.521__    |
