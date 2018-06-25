@@ -40,7 +40,7 @@ and parameters.
 
 | Model             | LR     | Feature(s)    | Tokenization     | Epochs     | Conv    | __Macro F__  |
 |-------------------|--------|---------------|------------------|------------|---------|--------------|
-| Baseline | 0.1 | Bigram (frequency) | | | | |
+| Baseline | 0.3 | Bigram (frequency) | Basic | 150 | 0.97 | __0.545__ |
 | Baseline | 0.1 | Bigram  |  | | | | |
 
 
@@ -309,4 +309,15 @@ Conv	Fmac	Fmic	supP	supR	disP	disR	feaP	feaR	sadP	sadR	joyP	joyR	angP	angR
 ```
 Conv	Fmac	Fmic	supP	supR	disP	disR	feaP	feaR	sadP	sadR	joyP	joyR	angP	angR
 0.76	0.461	0.462	0.42	0.42	0.52	0.53	0.5	0.53	0.41	0.42	0.51	0.5	0.41	0.38
+```
+
+
+#### Model: MCP+Averaging+Shuffling, Features: Bigrams, Tokenization: basic
+![convergence chart](results/experiment_basic_bigram.png)
+
+150th epoch results:
+
+```
+Conv	Fmac	Fmic	supP	supR	disP	disR	feaP	feaR	sadP	sadR	joyP	joyR	angP	angR
+0.97	0.545	0.547	0.54	0.53	0.55	0.61	0.58	0.6	0.5	0.53	0.58	0.58	0.53	0.43
 ```

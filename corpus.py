@@ -4,25 +4,33 @@ from random import shuffle
 class Corpus(object):
     """ A datastructure to store Tweet objects.
 
-        The files from which the data to store in Tweet/Corpus datastructure is read in
-        is assumed to have the following format:
+        The files from which the data to store in Tweet/Corpus datastructure is
+        read is assumed to have the following format:
 
-            The file containg the tweets: each line consists of two tab separated columns,
-                                          in the first column the predicted label for this tweet
-                                          and in the second the text of this tweet.
+            (Mandatory) The file containg the tweets and predicted labels: each
+                line consists of two tab separated columns, in the first column
+                the predicted label for this tweet and in the second the text of
+                this tweet.
 
-            The file containg the gold labels: one label on each line no empty lines in between.
+            (Optional) The file containg the gold labels: one label on each line
+                no empty lines in between.
 
-            Both files have the same length and the lines in the files correspond to each other
-            (e.g. The first line of the gold label file contains the label for the tweet on the first line of the other file).
+            Both files are assumed to have the same length and the lines in the
+            files correspond to each other (e.g. The first line of the gold
+            label file contains the label for the tweet on the first line of the
+            other file).
     """
 
-    def __init__(self, filename_tweets:str, filename_gold_labels:str=None, print_distr:bool=False):
+    def __init__(self, filename_tweets:str, filename_gold_labels:str=None, \
+                print_distr:bool=False):
         """ Inits the Corpus.
 
             Args:
-                filename_tweets: the name of the file containing the tweets and predicted labels.
-                (optional) filename_gold_labels: the name of the file containg the gold labels.
+                filename_tweets: the name of the file containing the tweets and
+                    predicted labels.
+                (optional) filename_gold_labels: the name of the file containg
+                    the gold labels.
+                (optional) print statistics about class distribution.
         """
         self.__corpus = []
         self.__curr = 0 # counter for iterator
@@ -31,9 +39,9 @@ class Corpus(object):
             self.__read_test_files(filename_tweets, filename_gold_labels)
         elif filename_tweets:
             self.__read_train_file(filename_tweets)
-        self.__all_feature_names = []
         if print_distr:
-            self.__print_distr()
+            self.print_distr()
+        self.__all_feature_names = []
 
 
     def __iter__(self):
@@ -48,7 +56,7 @@ class Corpus(object):
             return self.get_ith(self.__curr - 1)
 
 
-    def __read_train_file(self, filename_tweets : str):
+    def __read_train_file(self, filename_tweets:str):
         with open (filename_tweets, 'r') as train_file:
             for line in train_file:
                 line = line.split('\t')
@@ -59,7 +67,7 @@ class Corpus(object):
                 self.__corpus.append(tweet_obj)
 
 
-    def __read_test_files(self, filename_tweets : str, filename_gold_labels : str):
+    def __read_test_files(self, filename_tweets:str, filename_gold_labels:str):
         with open (filename_tweets, 'r') as tweet_file, \
             open (filename_gold_labels) as gold_label_file:
             for tweet, gold_label in zip(tweet_file, gold_label_file):
@@ -76,15 +84,17 @@ class Corpus(object):
         return self.__distr
 
 
-    def __print_distr(self):
+    def print_distr(self):
         self.__distr['total'] = sum(self.__distr.values())
         emotions = list(self.__distr.keys())
         print('{}'.format('\t\t'.join(emotions)))
         all_data = []
         for e in emotions:
-            data = '{}% ({})'.format(round((self.__distr[e] / self.__distr['total'] * 100),1), self.__distr[e])
+            perc = round((self.__distr[e]*100 / self.__distr['total']),1) if \
+                self.__distr['total'] != 0 else 0
+            data = '{}% ({})'.format(perc, self.__distr[e])
             all_data.append(data)
-        print('{}'.format('\t'.join(all_data)))
+        print('{}\n'.format('\t'.join(all_data)))
 
 
     def set_all_feature_names(self, feature_names):

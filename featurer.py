@@ -205,8 +205,7 @@ class Featurer():
 
     def _extract_bigram(self, tweet):
         bigrams = {}
-        tokens = Tokenizer().get_tokens(tweet.get_text(), stem=False, lowercase=False,
-            remove_stopw=False, replace_emojis=True, replace_num=False)
+        tokens = Tokenizer().get_tokens(tweet.get_text(), **self._token_params)
         previous = '<BEGIN>'
         for token in tokens:
             bigram = previous + ' ' + token[0]
