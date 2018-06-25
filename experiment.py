@@ -36,8 +36,10 @@ def main():
     print_braint(types, epochs)
 
     # Initialize corpora
-    train_corpus = Corpus(train_data)
-    test_corpus = Corpus(test_data)
+    print('Class distribution in TRAIN data:')
+    train_corpus = Corpus(train_data, print_distr=True)
+    print('Class distribution in TEST data:')
+    test_corpus = Corpus(test_data, print_distr=True)
 
     # Initialize feature extractors
     features_train = Featurer(train_corpus, token_params, bigram=False)
@@ -77,7 +79,7 @@ def print_braint(types, epochs):
     8Y"Ybbd8"'  88         `"8bbdP"Y8 88 88       88 888
     """
     print(braint)
-    print('{}Preparing to run Braint{}, using {} feature type(s), {} epochs each.'.format(
+    print('{}Preparing to run Braint{}, using {} feature type(s), {} epochs each.\n'.format(
                 bold, unbold, len(types), epochs))
 
 
