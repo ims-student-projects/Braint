@@ -1,5 +1,5 @@
 
-# Braint: Experiments
+# Experiments with Perceptron
 
 Here we include the evaluation results of our model run with different features
 and parameters.
@@ -17,12 +17,12 @@ and parameters.
  | Baseline	         | 0.1    | frequency     | Basic            | 150        | 0.57    | __0.436__    |
  | +Shuffle	         | 0.1    | frequency     | Basic            | 150        | 0.56    | __0.412__    |
  | +Avg	             | 0.1    | frequency     | Basic            | 150        | 0.57    | __0.509__    |
- | +Shuffle, +Avg	   | 0.1    | frequency     | Basic            | 150        | 0.56    | __0.52__     |
- | +Shuffle, +Avg	   | 0.3    | frequency     | Basic            | 150        | 0.56    | __0.521__    |
- | +Shuffle, +Avg  	 | 0.5    | frequency     | Basic            | 150        | 0.56    | __0.521__    |
- | +Shuffle, +Avg  	 | 1.0    | frequency     | Basic            | 150        | 0.56    | __0.521__    |
+ | +Shuffle, +Avg	   | 0.1    | frequency     | Basic            | 150        | 0.56    | __0.52__ ✪   |
+ | +Shuffle, +Avg	   | 0.3    | frequency     | Basic            | 150        | 0.56    | __0.521__ ✪  |
+ | +Shuffle, +Avg  	 | 0.5    | frequency     | Basic            | 150        | 0.56    | __0.521__ ✪  |
+ | +Shuffle, +Avg  	 | 1.0    | frequency     | Basic            | 150        | 0.56    | __0.521__ ✪  |
  | +Shuffle, +Avg  	 | 0.3    | frequency     | replace_emojis   | 150        | 0.55    | __0.511__    |
- | +Shuffle, +Avg  	 | 0.3    | frequency     | replace_num      | 150        | 0.56    | __0.52__     |
+ | +Shuffle, +Avg  	 | 0.3    | frequency     | replace_num      | 150        | 0.56    | __0.52__ ✪   |
  | +Shuffle, +Avg | 0.3 | frequency | replace_emojis, replace_num | 150       | 0.55    | __0.51__     |
  | +Shuffle, +Avg  	 | 0.3    | frequency     | remove_stopw     | 150        | 0.52    | __0.47__     |
  | +Shuffle, +Avg  	 | 0.3    | frequency     | remove_punc      | 150        | 0.56    | __0.518__    |
