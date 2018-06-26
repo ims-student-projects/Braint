@@ -132,8 +132,6 @@ class Featurer():
 
         # Add list of features to corpus
         self._corpus.set_all_feature_names(bigram_labels.keys())
-        with open('experiment_bigram_labels', 'w') as f:
-            f.write('", "'.join(bigram_labels.keys()))
 
 
     def _extract_tf_idf(self, tweet):
@@ -213,7 +211,7 @@ class Featurer():
             if bigram not in bigrams:
                 bigrams[bigram] = 1
             else:
-                bigrams[bigram] = 1
+                bigrams[bigram] += 1
 
         for bigram in bigrams:
             bigrams[bigram] /= len(tokens)
