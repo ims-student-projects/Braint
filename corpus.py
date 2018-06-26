@@ -41,7 +41,7 @@ class Corpus(object):
             self.__read_train_file(filename_tweets)
         if print_distr:
             self.print_distr()
-        self.__all_feature_names = []
+        self.__all_feature_names = set()
 
 
     def __iter__(self):

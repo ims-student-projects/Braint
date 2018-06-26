@@ -14,9 +14,6 @@ E.g: run `rm experiment_*` in your terminal
 def main():
 
     classes = ['joy', 'anger', 'fear', 'surprise', 'disgust', 'sad']
-
-    # Feature types ('binary', 'count', 'frequency', 'tf-idf', 'bigram')
-    type = 'bigram'
     train_data = 'data/train'
     test_data = 'data/test'
 
@@ -29,8 +26,12 @@ def main():
                     'remove_punct':False }
 
     # Perceptron parameters
-    epochs = 150
+    epochs = 25
     learning_rate = 0.3
+
+    # Feature parameters
+    grams = (1,2) # 1=unigram, 2=bigram -- for single value, add , eg. (1,)
+    type = 'count' # choose between binary, count, frequency
 
     # Print info
     print_braint(type, epochs)
@@ -38,22 +39,20 @@ def main():
     # Initialize corpora
     print('Class distribution in TRAIN data:')
     train_corpus = Corpus(train_data, print_distr=True)
-    test_corpus = Corpus(test_data, print_distr=False)
+    test_corpus = Corpus(test_data)
 
     # Initialize feature extractors
-    features_train = Featurer(train_corpus, token_params, bigram=True)
-    features_test = Featurer(test_corpus, token_params, bigram=True)
-    print('Tokenizing tweets... Parameters: {}'.format
-            (', '.join([p for p in token_params if token_params[p]])))
+    features_train = Featurer(train_corpus, token_params, grams, type)
+    features_test = Featurer(test_corpus, token_params, grams, type)
 
-    # Extract features of each type
-    print('Extracting features {}... '.format(type.upper()))
-    features_train.extract(type)
-    features_test.extract(type)
+    # Print info
+    print('Tokenizing tweets completed (with parameters: {})\n'.format
+            (', '.join([p for p in token_params if token_params[p]])))
+    print('Extracting features {} completed (grams: {}).\n'.format(type.upper(),grams))
 
     # Filenames used to save data
-    fn_weights = 'results/experiment_{}_weights'.format(type)
-    fn_scores = 'results/experiment_{}_scores'.format(type)
+    fn_weights = 'results/experiment_grams{}_{}_weights'.format(grams, type)
+    fn_scores = 'results/experiment_grams{}_{}_scores'.format(grams, type)
 
     # Create and train the model
     print('Training and testing model...\n')
@@ -62,7 +61,7 @@ def main():
     classifier.train_and_test(epochs, train_corpus, test_corpus, fn_weights, \
                 fn_scores, token_params, [type])
 
-    print('Finlized predictiona and evaluation.\nClass distribution in TEST data:')
+    print('\nFinalized prediction and evaluation.\nClass distribution in TEST data:')
     test_corpus.print_distr()
 
 
