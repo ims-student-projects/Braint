@@ -37,6 +37,16 @@ tail -n +30721 train.csv > train
 ```
 All of these files should be located in the subfolder `data`.
 
+#### Class distribution in train data
+The six emotions are more or less evenly distributed in the train data (this
+	statistics is printed by the Corpus class):
+
+
+| surprise | anger	| disgust	| sad	| fear	| joy	| total |
+|----------|--------|---------|-----|-------|-----|-------|
+| 16.7% (20516)	| 16.7% (20506)	| 16.6% (20403)	| 16.8% (20593)	| 16.6% (20392)	| 16.7% (20470)	| 100.0% (122880) |
+
+
 ### Features
 
 - A vector representation of tf-idf score for all terms in the collection.

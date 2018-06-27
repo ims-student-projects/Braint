@@ -14,56 +14,59 @@ E.g: run `rm experiment_*` in your terminal
 def main():
 
     classes = ['joy', 'anger', 'fear', 'surprise', 'disgust', 'sad']
-
-    # Feature types ('binary', 'count', 'frequency', 'tf-idf')
-    types = ['frequency']
     train_data = 'data/train'
     test_data = 'data/test'
 
     # Tokenizer parameters
     token_params = { 'lowercase':False,
                     'stem':False,
-                    'replace_emojis':True,
-                    'replace_num':True,
+                    'replace_emojis':False,
+                    'replace_num':False,
                     'remove_stopw':False,
                     'remove_punct':False }
 
     # Perceptron parameters
-    epochs = 150
+    epochs = 25
     learning_rate = 0.3
 
+    # Feature parameters
+    grams = (1,2) # 1=unigram, 2=bigram -- for single value, add , eg. (1,)
+    type = 'count' # choose between binary, count, frequency
+
     # Print info
-    print_braint(types, epochs)
+    print_braint(type, epochs)
 
     # Initialize corpora
-    train_corpus = Corpus(train_data)
+    print('Class distribution in TRAIN data:')
+    train_corpus = Corpus(train_data, print_distr=True)
     test_corpus = Corpus(test_data)
 
     # Initialize feature extractors
-    features_train = Featurer(train_corpus, token_params, bigram=False)
-    features_test = Featurer(test_corpus, token_params, bigram=False)
-    print('Tokenizing tweets... Parameters: {}'.format
+    features_train = Featurer(train_corpus, token_params, grams, type)
+    features_test = Featurer(test_corpus, token_params, grams, type)
+
+    # Print info
+    print('Tokenizing tweets completed (with parameters: {})\n'.format
             (', '.join([p for p in token_params if token_params[p]])))
+    print('Extracting features {} completed (grams: {}).\n'.format(type.upper(),grams))
 
-    # Extract features of each type
-    for type in types:
-        print('Extracting features {}... '.format(type.upper()))
-        features_train.extract(type)
-        features_test.extract(type)
+    # Filenames used to save data
+    fn_weights = 'results/experiment_grams{}_{}_weights'.format(grams, type)
+    fn_scores = 'results/experiment_grams{}_{}_scores'.format(grams, type)
 
-        # Filenames used to save data
-        fn_weights = 'results/experiment_remoji_rnum_{}_weights'.format(type)
-        fn_scores = 'results/experiment_remoji_rnum_{}_scores'.format(type)
+    # Create and train the model
+    print('Training and testing model...\n')
+    classifier = MulticlassPerceptron(classes, train_corpus.get_all_feature_names(), \
+                learning_rate)
+    classifier.train_and_test(epochs, train_corpus, test_corpus, fn_weights, \
+                fn_scores, token_params, [type])
 
-        # Create and train the model
-        print('Training and testing model...')
-        classifier = MulticlassPerceptron(classes, train_corpus.get_all_feature_names(), \
-                    learning_rate)
-        classifier.train_and_test(epochs, train_corpus, test_corpus, fn_weights, \
-                    fn_scores, token_params, [type])
+    print('\nFinalized prediction and evaluation.\nClass distribution in TEST data:')
+    test_corpus.print_distr()
 
 
-def print_braint(types, epochs):
+
+def print_braint(type, epochs):
     bold = '\033[1m'
     unbold = '\033[0m'
     braint = """
@@ -77,8 +80,8 @@ def print_braint(types, epochs):
     8Y"Ybbd8"'  88         `"8bbdP"Y8 88 88       88 888
     """
     print(braint)
-    print('{}Preparing to run Braint{}, using {} feature type(s), {} epochs each.'.format(
-                bold, unbold, len(types), epochs))
+    print('{}Preparing to run Braint{}, using {} feature type, with {} epochs.\n'.format(
+                bold, unbold, type, epochs))
 
 
 if __name__ == "__main__":

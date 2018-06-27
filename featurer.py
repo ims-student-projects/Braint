@@ -1,91 +1,141 @@
 from tokenizer import Tokenizer
 from corpus import Corpus
 from math import log10
-from operator import itemgetter
 
 class Featurer():
     """
     :Featurer:
 
-    Extracts feature vectors from a corpus. Feature type can specified in the
-    arguments (see under Options). Since the features are intended to be used
-    by a Perceptron, we always add the additional feature "THETA" (value is 1).
+    Extracts features from tweet collection. Features can be both unigram and
+    bigram tokens. Feature values can be calculated in 4 methods (see under
+    Options). An additional feature, '<BIAS>' (whose value is always 1) is
+    added to the features, since those are intended to be used by a Perceptron.
 
-    :Expected input:
+    Don't wait for any return values, features are sent to the Corpus and each
+    corresponding Tweet instance
+
+    :Paramteres:
         - corpus -- an instance of class Corpus
-
-        when extract() is called:
-        - feature_type -- type of features to be extracted
+        - token_params -- parameters that will be sent to Tokenizer, dict
+        - grams -- number of grams to extract: 1 or 2 or both, tuple of ints
+        - type -- feature type, str, select one from:
+            -- binary
+            -- count
+            -- frequency
+            -- tf_idf
 
     :Output:
-    Directly fed back into the corpus and tweets:
+    Directly fed back into the corpus and its tweet objects. See the following
+    methods to access the features:
         - corpus.get_all_features() -- list of all feature labels in corpus
         - tweet.get_features() -- dict of features and values for each tweet
 
     :Usage:
-        features = Featurer(corpus)
-        features.extract(feature_type)
+        f = Featurer(corpus, PARAMETERS)
+    :Example usage:
+        f = Featurer(train_corpus, token_params=None, grams=(1,2), type='frequency')
 
-    :Options:
-        feature_type:
-            -- binary
-            -- count
-            -- frequency
-            -- tf-idf
-            -- bigram
     """
 
-    def __init__(self, corp=None, token_params=None, bigram=False):
+    def __init__(self, \
+                corp=None, \
+                token_params=None, \
+                grams=(1,), \
+                type='frequency'):
 
         """
-        Greacefully exit if corpus is not provided
+        Greacefully exit if arguments are invalid
         """
+        invalid_arguments = []
         if not corp or not isinstance(corp, Corpus):
-            raise ValueError('\nMissing or invalid argument:\'corpus\'\n{}'
-                .format(self.__doc__))
-
-        # Dict that matches feature type to its method
-        self._types = { 'binary': self._extract_binary,
-                        'count': self._extract_count,
-                        'frequency': self._extract_frequency,
-                        'tf-idf': self._extract_tf_idf,
-                        'bigram': self._extract_bigram}
-        self._token_params = token_params   # tokenizer paramters, dict
-        self._corpus = corp                 # iterable collection of tweets
-        self._size = 0                      # corpus size = nr of tweets
-        self._term_idfs = {}                # dict with term-idf-score pairs
-        self._main(bigram)                  # start the fun
+            invalid_arguments.append('corp ({})'.format(corp))
+        if grams not in ((1,2), (2,1), (1,), (2,)):
+            invalid_arguments.append('grams ({})'.format(grams))
+        if type not in ('binary', 'count', 'frequency', 'tf_idf'):
+            invalid_arguments.append('type ({})'.format(type))
+        if invalid_arguments:
+            raise ValueError('\nInvalid argument(s): {}\n{}'
+                .format(','.join(invalid_arguments), self.__doc__))
 
 
-    def _main(self, bigram):
+        self.corpus = corp
+        self.corpus_size = 0
+        self.token_params = token_params
+        self.count_unigrams = True if 1 in grams else False
+        self.count_bigrams = True if 2 in grams else False
+        self.type = type
+        self.feature_labels = {'<BIAS>'}
+        self.extract()
+
+
+    def extract(self):
         """
         Main routine the performs some basic calculations before feature vectors
         are extracted:
         (1) counts collection size,
-        (2) extracts list of all terms from colection (a.k.a. "feature names"),
-        (3) sorts these terms according to df
-        """
-        if bigram:
-            self._extract_bigram_labels()
-        else:
-            self._extract_idf()  # gets size, terms and idf scores
+        (2) extracts list of all terms from colection (a.k.a. "feature names")
 
-
-    def extract(self, type=None):
-        """
         Extract features for each tweet and send to corresponding Tweet object.
         If no or invalid type is given as parameter, print a soft warning.
         """
-        if not type or type not in self._types.keys():
-            print('invalid feature type {}. Ignoring request.'.format(type))
-        else:
-            for tweet in self._corpus:
-                 # Fabricator to use method matching with requested feature type
-                features = self._types[type](tweet)
-                tweet.set_features(features)
+
+        # Prepare parameters for feature extraction (only for convenience)
+        (u, b) = (self.count_unigrams, self.count_bigrams)
+        bin = True if self.type == 'binary' else False
+        count = True if self.type == 'count' else False
+        freq = True if self.type == 'frequency' else False
+        tf_idf = True if self.type == 'tf_idf' else False
+
+        # Optionally calculate IDF scores
+        if self.type == 'tf_idf':
+            self.calculate_idf_scores(u, b)
+
+        for tweet in self.corpus:
+            features = self.extract_features(tweet, u, b, bin, count, freq, tf_idf)
+            tweet.set_features(features)
+            #print(tweet.get_features())
+
+        # Add feature labels to corpus
+        self.corpus.set_all_feature_names(self.feature_labels)
 
 
-    def _extract_idf(self):
+    def extract_features(self, \
+                        tweet, \
+                        count_unigrams, \
+                        count_bigrams, \
+                        binary, \
+                        count, \
+                        frequency, \
+                        tf_idf ):
+
+        features = {}
+        previous_token = '<BEGIN>'
+        tokens = Tokenizer().get_tokens(tweet.get_text(), **self.token_params)
+
+        for token in tokens:
+            if count_unigrams:
+                unigram = token[0]
+                features[unigram] = 1 if binary else features.get(unigram,0)+1
+                self.feature_labels.add(unigram)
+            if count_bigrams:
+                bigram = previous_token + ' ' + token[0]
+                previous_token = token[0]
+                features[bigram] = 1 if binary else features.get(bigram,0)+1
+                self.feature_labels.add(bigram)
+
+        if frequency or tf_idf:
+            for f in features:
+                features[f] /= len(tokens)
+
+        if tf_idf:
+            for f in features:
+                features[f] *= self.feature_idf_scores[f]
+
+        features['<BIAS>'] = 1
+        return features
+
+
+    def calculate_idf_scores(self, count_unigrams, count_bigrams):
         """
         Extracts terms from corpus and adds them to self.__term_idfs. Calculates
         df score (=document frequency, i.e. number of tweets in which the term
@@ -94,131 +144,26 @@ class Featurer():
         higher score).
         """
 
-        # Count corpus size, extract terms and count df for each term
-        term_dfs = {}
-        for tweet in self._corpus:
-            self._size += 1
-            terms = Tokenizer().get_terms(tweet.get_text(), **self._token_params)
-            for term in terms:
-                if term[0] not in term_dfs:
-                    term_dfs[term[0]] = 1
-                else:
-                    term_dfs[term[0]] += 1
+        self.feature_idf_scores = {}
+        corpus_size = self.corpus.length()
 
-        #  Convert df's into idf's (inverted df)
-        for term in term_dfs.keys():
-            self._term_idfs[term] = log10(self._size / term_dfs[term])
+        # Count document frequencyt of each feature
+        for tweet in self.corpus:
+            features = set()
+            if count_unigrams:
+                terms = Tokenizer().get_terms(tweet.get_text(), **self.token_params)
+                for term in terms:
+                    features.add(term[0])
+            if count_bigrams:
+                tokens = Tokenizer().get_tokens(tweet.get_text(), **self.token_params)
+                previous_token = '<BEGIN>'
+                for token in tokens:
+                    bigram = previous_token + ' ' + token[0]
+                    previous_token = token[0]
+                    features.add(bigram)
+            for f in features:
+                self.feature_idf_scores[f] = self.feature_idf_scores.get(f,0)+1
 
-        # Add the Theta as an additional element in the vectors
-        self._term_idfs['THETA'] = 1
-
-        # Add list of features to corpus
-        self._corpus.set_all_feature_names(self._term_idfs.keys())
-
-
-    def _extract_bigram_labels(self):
-        bigram_labels = {}
-        for tweet in self._corpus:
-            self._size += 1
-            # options are for DEBUG
-            tokens = Tokenizer().get_tokens(tweet.get_text(), **self._token_params)
-            previous = '<BEGIN>'
-            for token in tokens:
-                bigram = previous + ' ' + token[0]
-                previous = token[0]
-                if bigram not in bigram_labels.keys():
-                    bigram_labels[bigram] = None
-        bigram_labels['THETA'] = None
-
-        # Add list of features to corpus
-        self._corpus.set_all_feature_names(bigram_labels.keys())
-        with open('experiment_bigram_labels', 'w') as f:
-            f.write('", "'.join(bigram_labels.keys()))
-
-
-    def _extract_tf_idf(self, tweet):
-        """
-        For each term in tweet calculate tf, normalized by tweet size.
-        Calculate tf-idf scores using pre-calculated idf-scores.
-        """
-        # Get count of each term in tweet
-        term_tfs = {}
-        tokens = Tokenizer().get_tokens(tweet.get_text())
-        for token in tokens:
-            if token[0] in self._term_idfs.keys():
-                if token[0] in term_tfs:
-                    term_tfs[token[0]] += 1
-                else:
-                    term_tfs[token[0]] = 1
-        # Normalize by total number of tokens in tweet
-        for term in term_tfs:
-            term_tfs[term] /= len(tokens)
-        # Calculate tf-idf scores by mutltiplying tf and idf
-        tf_idfs = {}
-        for term in term_tfs:
-            tf_idfs[term] = term_tfs[term] * self._term_idfs[term]
-        # Add Theta as an additional element in the vector
-        # (Yes, this needs to be added in both idf and tf-idf dicts!)
-        tf_idfs['THETA'] = 1
-
-        return tf_idfs
-
-
-    def _extract_binary(self, tweet):
-        binaries = {}
-        tokens = Tokenizer().get_tokens(tweet.get_text())
-        for token in tokens:
-            if token[0] in self._term_idfs.keys():
-                if token[0] not in binaries:
-                    binaries[token[0]] = 1
-        binaries['THETA'] = 1
-        return binaries
-
-
-    def _extract_count(self, tweet):
-        counts = {}
-        tokens = Tokenizer().get_tokens(tweet.get_text())
-        for token in tokens:
-            if token[0] in self._term_idfs.keys():
-                if token[0] in counts:
-                    counts[token[0]] += 1
-                else:
-                    counts[token[0]] = 1
-        counts['THETA'] = 1
-        return counts
-
-
-    def _extract_frequency(self, tweet):
-        frequencies = {}
-        tokens = Tokenizer().get_tokens(tweet.get_text())
-        for token in tokens:
-            if token[0] in self._term_idfs.keys():
-                if token[0] in frequencies:
-                    frequencies[token[0]] += 1
-                else:
-                    frequencies[token[0]] = 1
-        for token in frequencies:
-            frequencies[token] /= len(tokens)
-        frequencies['THETA'] = 1
-        return frequencies
-
-
-    def _extract_bigram(self, tweet):
-        bigrams = {}
-        tokens = Tokenizer().get_tokens(tweet.get_text(), stem=False, lowercase=False,
-            remove_stopw=False, replace_emojis=True, replace_num=False)
-        previous = '<BEGIN>'
-        for token in tokens:
-            bigram = previous + ' ' + token[0]
-            previous = token[0]
-            if bigram not in bigrams:
-                bigrams[bigram] = 1
-            else:
-                bigrams[bigram] = 1
-
-        for bigram in bigrams:
-            bigrams[bigram] /= len(tokens)
-
-        bigrams['THETA'] = 1
-
-        return bigrams
+        #  Convert df's into idf's (inverted document frequency)
+        for f in self.feature_idf_scores.keys():
+            self.feature_idf_scores[f] = log10(corpus_size / self.feature_idf_scores[f])

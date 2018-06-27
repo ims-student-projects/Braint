@@ -1,5 +1,5 @@
 
-# Braint: Experiments
+# Experiments with Perceptron
 
 Here we include the evaluation results of our model run with different features
 and parameters.
@@ -40,9 +40,18 @@ and parameters.
 
 | Model             | LR     | Feature(s)    | Tokenization     | Epochs     | Conv    | __Macro F__  |
 |-------------------|--------|---------------|------------------|------------|---------|--------------|
-| Baseline | 0.1 | Bigram (frequency) | | | | |
-| Baseline | 0.1 | Bigram  |  | | | | |
+| Baseline | 0.3 | Bigram: frequency | Basic | 150 | 0.97 | __0.545__ |
+| Baseline | 0.3 | Bigram: tf-idf | Basic | 25 | 0.98 | __0.54__ |
 
+
+### Experiments with Unigrams+Birgrams
+
+| Model             | LR     | Feature(s)    | Tokenization     | Epochs     | Conv    | __Macro F__  |
+|-------------------|--------|---------------|------------------|------------|---------|--------------|
+| Baseline | 0.3 | Unigram+Bigram: binary | Basic | 150 | 0.99 | __0.55__ |
+| Baseline | 0.3 | Unigram+Bigram: count | Basic | 25 | 0.96 | __0.564__ |
+| Baseline | 0.3 | Unigram+Bigram: frequency | Basic | 150 | 0.97 | __0.568__ |
+| Baseline | 0.3 | Unigram+Bigram: tf_idf | Basic | 150 | 0.99 | __0.554__ |
 
 ## Details & Charts
 ### Binary. Tokenization: basic
@@ -104,7 +113,7 @@ Conv	Fmac	Fmic	supP	supR	disP	disR	feaP	feaR	sadP	sadR	joyP	joyR	angP	angR
 0.57	0.509	0.51	0.46	0.5	0.56	0.56	0.53	0.56	0.48	0.45	0.57	0.55	0.45	0.43
 ```
 
-### Frequency. Tokenization: basic, MCP+Averaging+Shuffling
+### Frequency. Tokenization: basic, MCP+A+S
 
 #### Learning rate 0.1
 ![convergence chart](results/experiment_av-shfl_frequency.png)
@@ -147,7 +156,7 @@ Conv	Fmac	Fmic	supP	supR	disP	disR	feaP	feaR	sadP	sadR	joyP	joyR	angP	angR
 ```
 
 
-### Frequency. MCP+Averaging+Shuffling. Different tokenization params
+### Frequency. MCP+A+S. Different tokenization params
 
 Learning rate 0.3
 
@@ -239,7 +248,7 @@ Conv	Fmac	Fmic	supP	supR	disP	disR	feaP	feaR	sadP	sadR	joyP	joyR	angP	angR
 ```
 
 
-### Frequency. Tokenization: all params, MCP+Averaging+Shuffling
+### Frequency. Tokenization: all params, MCP+A+S
 
 ![convergence chart](results/experiment_av-shf3_all_frequency.png)
 
@@ -276,7 +285,7 @@ Conv	Fmac	Fmic	supP	supR	disP	disR	feaP	feaR	sadP	sadR	joyP	joyR	angP	angR
 0.79	0.467	0.467	0.42	0.44	0.52	0.52	0.51	0.51	0.43	0.43	0.53	0.5	0.4	0.39
 ```
 
-#### Model: MCP+Averaging+Shuffling, Tokenization: Basic:
+#### Model: MCP+A+S, Tokenization: Basic:
 
 ![convergence chart](results/experiment_basic_tf-idf.png)
 
@@ -288,7 +297,7 @@ Conv	Fmac	Fmic	supP	supR	disP	disR	feaP	feaR	sadP	sadR	joyP	joyR	angP	angR
 ```
 
 
-#### Model: MCP+Averaging+Shuffling, Tokenization: all params:
+#### Model: MCP+A+S, Tokenization: all params:
 
 ![convergence chart](results/experiment_av-shf3_all_tf-idf.png)
 
@@ -300,7 +309,7 @@ Conv	Fmac	Fmic	supP	supR	disP	disR	feaP	feaR	sadP	sadR	joyP	joyR	angP	angR
 ```
 
 
-#### Model: MCP+Averaging+Shuffling, Tokenization: replace_emoji+replace_num:
+#### Model: MCP+A+S, Tokenization: replace_emoji+replace_num:
 
 ![convergence chart](results/experiment_remoji_rpunc_tf-idf.png)
 
@@ -309,4 +318,72 @@ Conv	Fmac	Fmic	supP	supR	disP	disR	feaP	feaR	sadP	sadR	joyP	joyR	angP	angR
 ```
 Conv	Fmac	Fmic	supP	supR	disP	disR	feaP	feaR	sadP	sadR	joyP	joyR	angP	angR
 0.76	0.461	0.462	0.42	0.42	0.52	0.53	0.5	0.53	0.41	0.42	0.51	0.5	0.41	0.38
+```
+
+
+#### Model: MCP+A+S, Features: Bigrams, Tokenization: basic
+![convergence chart](results/experiment_basic_bigram.png)
+
+150th epoch results:
+
+```
+Conv	Fmac	Fmic	supP	supR	disP	disR	feaP	feaR	sadP	sadR	joyP	joyR	angP	angR
+0.97	0.545	0.547	0.54	0.53	0.55	0.61	0.58	0.6	0.5	0.53	0.58	0.58	0.53	0.43
+```
+
+
+
+
+#### Model: MCP+A+S, Features: Unigram+Bigram, frequency, Tokenization: basic
+![convergence chart](results/experiment_grams%281, 2%29_frequency.png)
+
+150th epoch results:
+
+```
+Conv	Fmac	Fmic	supP	supR	disP	disR	feaP	feaR	sadP	sadR	joyP	joyR	angP	angR
+0.97	0.568	0.571	0.59	0.51	0.57	0.65	0.57	0.66	0.53	0.56	0.61	0.61	0.56	0.44
+```
+
+
+#### Model: MCP+A+S, Features: Unigram+Bigram, binary, Tokenization: basic
+![convergence chart](results/experiment_grams%281, 2%29_binary.png)
+
+150th epoch results:
+
+```
+Conv	Fmac	Fmic	supP	supR	disP	disR	feaP	feaR	sadP	sadR	joyP	joyR	angP	angR
+0.99	0.55	0.55	0.53	0.54	0.58	0.59	0.6	0.6	0.52	0.51	0.6	0.58	0.48	0.48
+```
+
+
+#### Model: MCP+A+S, Features: Unigram+Bigram, TF-IDF, Tokenization: basic
+![convergence chart](results/experiment_grams%281, 2%29_tf-idf.png)
+
+150th epoch results:
+
+```
+Conv	Fmac	Fmic	supP	supR	disP	disR	feaP	feaR	sadP	sadR	joyP	joyR	angP	angR
+0.99	0.554	0.557	0.56	0.52	0.57	0.62	0.55	0.66	0.52	0.54	0.61	0.58	0.54	0.42
+```
+
+#### Model: MCP+A+S, Features: Unigram+Bigram, count, Tokenization: basic
+![convergence chart](results/experiment_grams%281, 2%29_count.png)
+
+25th epoch results:
+
+```
+Conv	Fmac	Fmic	supP	supR	disP	disR	feaP	feaR	sadP	sadR	joyP	joyR	angP	angR
+0.96	0.564	0.565	0.53	0.56	0.61	0.6	0.6	0.62	0.54	0.52	0.61	0.6	0.5	0.5
+```
+
+
+
+#### Model: MCP+A+S, Features: Bigram, TF-IDF, Tokenization: basic
+![convergence chart](results/experiment_grams%282,%29_tf_idf.png)
+
+25th epoch results:
+
+```
+Conv	Fmac	Fmic	supP	supR	disP	disR	feaP	feaR	sadP	sadR	joyP	joyR	angP	angR
+0.98	0.54	0.542	0.56	0.51	0.56	0.6	0.57	0.6	0.49	0.53	0.57	0.58	0.51	0.43
 ```
