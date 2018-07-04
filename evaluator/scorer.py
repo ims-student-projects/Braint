@@ -76,7 +76,7 @@ class Scorer():
         return (2*p*r)/(p+r) if (p+r)!=0 else 0.0
 
 
-    def __str__(self, convergence, use_bold=True):
+    def __str__(self, convergence='--', use_bold=True):
         """
         Fancy list of macro, micro f-scores and precision and recall for all labels
         """
