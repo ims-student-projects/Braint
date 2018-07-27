@@ -50,8 +50,9 @@ and parameters.
 |-------------------|--------|---------------|------------------|------------|---------|--------------|
 | Baseline | 0.3 | Unigram+Bigram: binary | Basic | 150 | 0.99 | __0.55__ |
 | Baseline | 0.3 | Unigram+Bigram: count | Basic | 25 | 0.96 | __0.564__ |
-| Baseline | 0.3 | Unigram+Bigram: frequency | Basic | 150 | 0.97 | __0.568__ |
 | Baseline | 0.3 | Unigram+Bigram: tf_idf | Basic | 150 | 0.99 | __0.554__ |
+| Baseline | 0.3 | Unigram+Bigram: frequency | Basic | 150 | 0.97 | __0.568__ |
+| Baseline | 0.3 | Unigram+Bigram: frequency | Basic | 50 | 0.88 | __0.58__ |
 
 ## Details & Charts
 ### Binary. Tokenization: basic
@@ -332,19 +333,6 @@ Conv	Fmac	Fmic	supP	supR	disP	disR	feaP	feaR	sadP	sadR	joyP	joyR	angP	angR
 ```
 
 
-
-
-#### Model: MCP+A+S, Features: Unigram+Bigram, frequency, Tokenization: basic
-![convergence chart](results/experiment_grams%281, 2%29_frequency.png)
-
-150th epoch results:
-
-```
-Conv	Fmac	Fmic	supP	supR	disP	disR	feaP	feaR	sadP	sadR	joyP	joyR	angP	angR
-0.97	0.568	0.571	0.59	0.51	0.57	0.65	0.57	0.66	0.53	0.56	0.61	0.61	0.56	0.44
-```
-
-
 #### Model: MCP+A+S, Features: Unigram+Bigram, binary, Tokenization: basic
 ![convergence chart](results/experiment_grams%281, 2%29_binary.png)
 
@@ -366,6 +354,17 @@ Conv	Fmac	Fmic	supP	supR	disP	disR	feaP	feaR	sadP	sadR	joyP	joyR	angP	angR
 0.99	0.554	0.557	0.56	0.52	0.57	0.62	0.55	0.66	0.52	0.54	0.61	0.58	0.54	0.42
 ```
 
+
+#### Model: MCP+A+S, Features: Bigram, TF-IDF, Tokenization: basic
+![convergence chart](results/experiment_grams%282,%29_tf_idf.png)
+
+25th epoch results:
+
+```
+Conv	Fmac	Fmic	supP	supR	disP	disR	feaP	feaR	sadP	sadR	joyP	joyR	angP	angR
+0.98	0.54	0.542	0.56	0.51	0.56	0.6	0.57	0.6	0.49	0.53	0.57	0.58	0.51	0.43
+```
+
 #### Model: MCP+A+S, Features: Unigram+Bigram, count, Tokenization: basic
 ![convergence chart](results/experiment_grams%281, 2%29_count.png)
 
@@ -377,13 +376,24 @@ Conv	Fmac	Fmic	supP	supR	disP	disR	feaP	feaR	sadP	sadR	joyP	joyR	angP	angR
 ```
 
 
+#### Model: MCP+A+S, Features: Unigram+Bigram, frequency, Tokenization: replace num/emoji
+![convergence chart](results/experiment_rr_grams%281, 2%29_frequency.png)
 
-#### Model: MCP+A+S, Features: Bigram, TF-IDF, Tokenization: basic
-![convergence chart](results/experiment_grams%282,%29_tf_idf.png)
-
-25th epoch results:
+50th epoch results:
 
 ```
 Conv	Fmac	Fmic	supP	supR	disP	disR	feaP	feaR	sadP	sadR	joyP	joyR	angP	angR
-0.98	0.54	0.542	0.56	0.51	0.56	0.6	0.57	0.6	0.49	0.53	0.57	0.58	0.51	0.43
+0.88	0.579	0.581	0.56	0.57	0.6	0.63	0.59	0.64	0.56	0.54	0.62	0.62	0.54	0.48
+```
+
+
+
+#### Model: MCP+A+S, Features: Unigram+Bigram, frequency, Tokenization: basic
+![convergence chart](results/experiment_grams%281, 2%29_frequency_50e.png)
+
+50th epoch results:
+
+```
+Conv	Fmac	Fmic	supP	supR	disP	disR	feaP	feaR	sadP	sadR	joyP	joyR	angP	angR
+0.88	0.58	0.582	0.56	0.57	0.6	0.63	0.59	0.64	0.56	0.55	0.62	0.62	0.55	0.48
 ```

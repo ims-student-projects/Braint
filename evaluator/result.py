@@ -51,7 +51,7 @@ class Result():
         print(header)
 
 
-    def show(self, accuracy, score):
+    def show(self, score, accuracy=None):
         self.convergence.append(accuracy)
         self.fmac.append(score.f_macro)
         self.epochs += 1

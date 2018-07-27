@@ -4,7 +4,6 @@ from utils.translate_emoji import emoji_to_label
 from nltk.corpus import stopwords
 from nltk.stem.snowball import SnowballStemmer
 
-
 class Tokenizer():
 
     """
@@ -30,7 +29,7 @@ class Tokenizer():
     """
 
     def __init__(self):
-        self.punct = string.punctuation
+        self.punct = string.punctuation + '’…”“£—＠→♡°⁎«＼｜／'
         self.stopwords = stopwords.words('english')
         self.stemmer = SnowballStemmer('english')
 
@@ -90,7 +89,7 @@ class Tokenizer():
                     if char in self.punct:
                         # add preceding charachters to results, if any
                         if new_token:
-                            result.append(self.add_new_token(new_token, replace_num))
+                            result += self.add_new_token(new_token, replace_num, stem)
                             new_token = ''
                         # Add symbol to result, except # and @
                         if char == '#' or char == '@':
@@ -101,56 +100,60 @@ class Tokenizer():
                     elif char in emoji_to_label.keys():
                         # add preceding charachters to results, if any
                         if new_token:
-                            result.append(self.add_new_token(new_token, replace_num))
+                            result += self.add_new_token(new_token, replace_num, stem)
                             new_token = ''
-                        # add emoji
+                        # add emoji to results
+                        result.append((char, 'emoji'))
                         if replace_emojis:
                             emoji_text = emoji_to_label[char] # ignore columns
                             result.append((emoji_text[1:-1], 'emoji'))
-                        else:
-                            result.append((char, 'emoji'))
                     # Character is uncommon emoji
                     elif char in emoji.UNICODE_EMOJI.keys():
                         # add preceding charachters to results, if any
                         if new_token:
-                            result.append(self.add_new_token(new_token, replace_num))
+                            result += self.add_new_token(new_token, replace_num, stem)
+                            new_token = ''
                         # add emoji
+                        result.append((char, 'emoji'))
                         if replace_emojis:
                             emoji_text = emoji.demojize(char) # ignore columns
                             result.append((emoji_text[1:-1], 'emoji'))
-                        else:
-                            result.append((char, 'emoji'))
-                            new_token = ''
                     # Character is alpha-numerical
                     else:
                         new_token += char
+                # final check after loop
                 if new_token:
-                    result.append(self.add_new_token(new_token, replace_num))
+                    result += self.add_new_token(new_token, replace_num, stem)
         # Remove stopwords
         if remove_stopw:
             result = self.remove_stopwords(result)
-        # Stem
-        if stem:
-            result = self.get_stems(result)
         return result
 
 
-    def add_new_token(self, token, replace_num):
-        new_token = ()
+    def add_new_token(self, token, replace_num, stem):
+        """
+        Returns a list with 1 or 2 elements: tuple with the new token and the
+        label of the token (type of token). If the arguments replace_num or stem
+        are True, additional token elements are added.
+        """
+        new_tokens = []
         if token[0] == '#':
-            new_token = (token, 'hashtag')
+            new_tokens.append((token, 'hashtag'))
         elif token[0] == '@':
-            new_token = (token, 'username')
+            new_tokens.append((token, 'username'))
         elif token.isalpha():
-            new_token = (token, 'word')
+            new_tokens.append((token, 'word
+            if stem:
+                stemmed_token = self.stemmer.stem(token)
+                if stemmed_token and stemmed_token != token:
+                    new_tokens.append((stemmed_token, 'word'))
         elif token.isnumeric():
+            new_tokens.append((token, 'numeric'))
             if replace_num:
-                new_token = ('<NUM>', 'numeric')
-            else:
-                new_token = (token, 'numeric')
+                new_tokens.append(('<NUM>', 'numeric'))
         else:
-            new_token = (token, 'other')  # Shouldn't happen, but to be save
-        return new_token
+            new_tokens.append((token, 'other'))  # Shouldn't happen, but to be save
+        return new_tokens
 
 
     def remove_stopwords(self, word_list):
@@ -203,12 +206,19 @@ if __name__ == '__main__':
     test_1 = 'HeLlO\t,  WoRld! I\'m Tired of lo/sers <33333 1984 :)))) [NEWLINE] >:\ 🤠 🙂 😃😄😆😍'
     test_2 = "much♡[NEWLINE]•2 … …texting&driving he's @USERNAME works. A[NEWLINE][NEWLINE]As Mom:\"its pretty done."
     test_3 = '#WeLoveYouJackson[NEWLINE]#ItsOnlyGOT7'
-    test_4 = '#Love#Love @vgratian'
+    test_4 = '#Love#Love @user'
     test_5 = '’…”“£—＠→♡°⁎«＼｜／'
-    tokens = tokenizer.get_tokens(test_4, stem=False, lowercase=False,
-        remove_stopw = False, replace_emojis=True)
+    test_6 = 'fu*kers'
+    choice = test_1
+    tokens = tokenizer.get_tokens(choice,
+                lowercase=False,
+                stem=True,
+                replace_emojis=True,
+                replace_num=True,
+                remove_stopw=False,
+                remove_punct=False)
 
-    print('Original input: {}\n'.format(test_1))
+    print('Original input: {}\n'.format(choice))
     print('Tuples tokens ({}):\n{}\n'.format(len(tokens), tokens))
     print('String tokens:'.format(len(tokens)))
     print('"{}"\n'.format('" "'.join(t[0] for t in tokens)))

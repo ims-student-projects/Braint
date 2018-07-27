@@ -70,6 +70,7 @@ class Tweet(object):
                 A string representation of this tweet object,
                 containg the tweet text, the predicted label and the gold label.
         """
-        return ("Gold Label:" + "\t" + self.get_gold_label() + "\n" +
-                "Predicted Label:" + "\t" + self.get_pred_label() + "\n" +
-                "Text:" + "\t" + self.get_text())
+        #return ("Gold Label:" + "\t" + self.get_gold_label() + "\n" +
+        #        "Predicted Label:" + "\t" + self.get_pred_label() + "\n" +
+        #        "Text:" + "\t" + self.get_text())
+        return None

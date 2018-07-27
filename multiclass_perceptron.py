@@ -75,6 +75,11 @@ class MulticlassPerceptron(object):
         self.train(epochs, train_corpus, test_corpus, fn_weights, fn_scores, result)
         result.draw_graph(types, token_params)
 
+        with open('final_results/tt2_50e_predictions.txt', 'w') as outf:
+            for tweet in test_corpus:
+                outf.write(tweet.get_pred_label() + "\n")
+
+
     def train(self, num_iterations, train_corpus, test_corpus=None, \
             fn_weights=None, fn_scores=None, result=None):
         """ Function to train the MulticlassPerceptron. Optionally writes weights
@@ -85,7 +90,6 @@ class MulticlassPerceptron(object):
                 fn_acc: file where to write accuracy scores for each iteration
                 fn_acc: file where to write weights for each iteration
         """
-        #print_progressbar(0, num_iterations)
         self.num_steps = num_iterations * train_corpus.length()
         self.curr_step = num_iterations * train_corpus.length()
         acc = 0  # accuracy score
@@ -109,17 +113,10 @@ class MulticlassPerceptron(object):
             if test_corpus:
                 self.test(test_corpus, test_mode=True)
                 scores = Scorer(test_corpus)
-                result.show(acc, scores)
-
-                #self.test(test_corpus, test_mode=True)
-                #scores = Scorer(test_corpus)
-                #result.show(acc, scores)
-                #print('\n')
+                result.show(scores,acc)
 
                 if fn_scores:
                     result.write(acc, scores, fn_scores)
-
-            #print_progressbar(i + 1, num_iterations)
 
         # Write final weights to file
         if fn_weights:
@@ -133,7 +130,22 @@ class MulticlassPerceptron(object):
         print(prediction)
 
 
-    def test(self, test_corpus, test_mode=False): #weights=None,
+    def test_model(self, test_corpus, weights, output=None, evaluate=False):
+
+        self.load_model(weights)
+        self.test(test_corpus)
+
+        if output:
+            with open(output, 'w') as outf:
+                for tweet in test_corpus:
+                    outf.write(tweet.get_pred_label() + "\n")
+
+        if evaluate:
+            result = Result()
+            scores = Scorer(test_corpus)
+            result.show(scores,0)
+
+    def test(self, test_corpus, test_mode=False):
         """
         Will use custom weights is passed by argument, otherwise class weights
         will be used.
@@ -159,4 +171,5 @@ class MulticlassPerceptron(object):
 
 
     def load_model(self, weights):
-        self.weights = weights
+        with open(weights, 'r') as w:
+            self.weights = json.load(w)

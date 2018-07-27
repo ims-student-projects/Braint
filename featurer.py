@@ -1,6 +1,8 @@
 from tokenizer import Tokenizer
 from corpus import Corpus
+from utils.progress_bar import print_progressbar
 from math import log10
+from  nltk import pos_tag
 
 class Featurer():
     """
@@ -41,7 +43,8 @@ class Featurer():
                 corp=None, \
                 token_params=None, \
                 grams=(1,), \
-                type='frequency'):
+                type='frequency',
+                pos=False):
 
         """
         Greacefully exit if arguments are invalid
@@ -49,8 +52,9 @@ class Featurer():
         invalid_arguments = []
         if not corp or not isinstance(corp, Corpus):
             invalid_arguments.append('corp ({})'.format(corp))
-        if grams not in ((1,2), (2,1), (1,), (2,)):
-            invalid_arguments.append('grams ({})'.format(grams))
+        for g in grams:
+            if g not in (1,2,3):
+                invalid_arguments.append('grams ({})'.format(grams))
         if type not in ('binary', 'count', 'frequency', 'tf_idf'):
             invalid_arguments.append('type ({})'.format(type))
         if invalid_arguments:
@@ -59,11 +63,13 @@ class Featurer():
 
 
         self.corpus = corp
-        self.corpus_size = 0
+        self.corpus_size = corp.length()
         self.token_params = token_params
         self.count_unigrams = True if 1 in grams else False
         self.count_bigrams = True if 2 in grams else False
+        self.count_trigrams = True if 3 in grams else False
         self.type = type
+        self.count_pos = pos
         self.feature_labels = {'<BIAS>'}
         self.extract()
 
@@ -80,7 +86,7 @@ class Featurer():
         """
 
         # Prepare parameters for feature extraction (only for convenience)
-        (u, b) = (self.count_unigrams, self.count_bigrams)
+        (u,b,t) = (self.count_unigrams, self.count_bigrams, self.count_trigrams)
         bin = True if self.type == 'binary' else False
         count = True if self.type == 'count' else False
         freq = True if self.type == 'frequency' else False
@@ -88,12 +94,16 @@ class Featurer():
 
         # Optionally calculate IDF scores
         if self.type == 'tf_idf':
-            self.calculate_idf_scores(u, b)
+            self.calculate_idf_scores(u,b,t)
 
+        # Main job: extract features and print progressbar
+        count = 0
+        print_progressbar(count, self.corpus_size)
         for tweet in self.corpus:
-            features = self.extract_features(tweet, u, b, bin, count, freq, tf_idf)
+            features = self.extract_features(tweet,u,b,t,bin,count,freq,tf_idf)
             tweet.set_features(features)
-            #print(tweet.get_features())
+            count += 1
+            print_progressbar(count, self.corpus_size)
 
         # Add feature labels to corpus
         self.corpus.set_all_feature_names(self.feature_labels)
@@ -103,25 +113,54 @@ class Featurer():
                         tweet, \
                         count_unigrams, \
                         count_bigrams, \
+                        count_trigrams, \
                         binary, \
                         count, \
                         frequency, \
                         tf_idf ):
 
         features = {}
-        previous_token = '<BEGIN>'
-        tokens = Tokenizer().get_tokens(tweet.get_text(), **self.token_params)
 
-        for token in tokens:
-            if count_unigrams:
-                unigram = token[0]
-                features[unigram] = 1 if binary else features.get(unigram,0)+1
-                self.feature_labels.add(unigram)
-            if count_bigrams:
-                bigram = previous_token + ' ' + token[0]
-                previous_token = token[0]
-                features[bigram] = 1 if binary else features.get(bigram,0)+1
-                self.feature_labels.add(bigram)
+        if count_unigrams:
+            tokens = Tokenizer().get_tokens(tweet.get_text(), **self.token_params)
+            for token in tokens:
+                if count_unigrams:
+                    unigram = token[0]
+                    features[unigram] = 1 if binary else features.get(unigram,0)+1
+                    self.feature_labels.add(unigram)
+
+        if count_bigrams or count_trigrams:
+            tp = self.token_params.copy()
+            tp['stem'] = False
+            tp['replace_emojis'] = False
+            tp['replace_num'] = False
+            strict_tokens = Tokenizer().get_tokens(tweet.get_text(), **tp)
+
+            previous_token = '<BEGIN>'  # Used for bigrams
+            previous = '<BEGIN>'  # Used for trigrams
+            previous_previous = None  # Used for trigrams
+
+            for token in strict_tokens:
+                if count_bigrams:
+                    bigram = previous_token + ' ' + token[0]
+                    previous_token = token[0]
+                    features[bigram] = 1 if binary else features.get(bigram,0)+1
+                    self.feature_labels.add(bigram)
+                if count_trigrams:
+                    if previous_previous:
+                        trigram = previous_previous + ' ' + previous + ' ' + token[0]
+                        features[trigram] = 1 if binary else features.get(trigram,0)+1
+                        self.feature_labels.add(trigram)
+                    previous_previous = previous
+                    previous = token[0]
+
+        if self.count_pos:
+            plain_tokens = [t[0] for t in tokens]
+            tokens_with_pos = pos_tag(plain_tokens)
+            for token in tokens_with_pos:
+                tag = '<' + token[1] + '>'
+                features[tag] = 1 if binary else features.get(tag,0)+1
+                self.feature_labels.add(tag)
 
         if frequency or tf_idf:
             for f in features:
@@ -129,13 +168,14 @@ class Featurer():
 
         if tf_idf:
             for f in features:
-                features[f] *= self.feature_idf_scores[f]
+                if self.feature_idf_scores[f]:
+                    features[f] *= self.feature_idf_scores[f]
 
         features['<BIAS>'] = 1
         return features
 
 
-    def calculate_idf_scores(self, count_unigrams, count_bigrams):
+    def calculate_idf_scores(self, count_unigrams, count_bigrams, count_trigrams):
         """
         Extracts terms from corpus and adds them to self.__term_idfs. Calculates
         df score (=document frequency, i.e. number of tweets in which the term
@@ -161,6 +201,17 @@ class Featurer():
                     bigram = previous_token + ' ' + token[0]
                     previous_token = token[0]
                     features.add(bigram)
+            if count_trigrams:
+                tokens = Tokenizer().get_tokens(tweet.get_text(), **self.token_params)
+                previous_token = '<BEGIN>'
+                previous_previous = None
+                for token in tokens:
+                    if previous_previous:
+                        trigram = previous_previous + ' ' + previous_token + ' ' + token[0]
+                        features.add(trigram)
+                    previous_previous = previous_token
+                    previous_token = token[0]
+
             for f in features:
                 self.feature_idf_scores[f] = self.feature_idf_scores.get(f,0)+1
 
