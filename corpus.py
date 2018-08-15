@@ -39,8 +39,6 @@ class Corpus(object):
             self.__read_test_files(filename_tweets, filename_gold_labels)
         elif filename_tweets:
             self.__read_train_file(filename_tweets)
-        elif test_file:
-            self.__read_test_file(filename_tweets)
         if print_distr:
             self.print_distr()
         self.__all_feature_names = set()

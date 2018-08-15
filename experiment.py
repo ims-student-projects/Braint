@@ -15,8 +15,10 @@ E.g: run `rm experiment_*` in your terminal
 def main():
     begin = time()
     classes = ['joy', 'anger', 'fear', 'surprise', 'disgust', 'sad']
-    train_data = 'data/train-v3.csv'
-    test_data = 'data/test.csv'
+    train_data = 'data/train_v3'
+    test_data = 'data/test_v3'
+    #train_data = 'data/s_train'
+    #test_data = 'data/s_test'
 
     # Tokenizer parameters
     token_params = { 'lowercase':False,
@@ -27,7 +29,7 @@ def main():
                     'remove_punct':False }
 
     # Perceptron parameters
-    epochs = 50
+    epochs = 30
     learning_rate = 0.3
 
     # Feature parameters
@@ -45,9 +47,9 @@ def main():
 
     # Initialize feature extractors
     print('Extracting features for TRAIN data:')
-    features_train = Featurer(train_corpus, token_params, grams, type, pos)
+    features_train = Featurer(train_corpus, token_params, grams, type)
     print('Extracting features for TEST data:')
-    features_test = Featurer(test_corpus, token_params, grams, type, pos)
+    features_test = Featurer(test_corpus, token_params, grams, type)
 
     # Print info
     print('Tokenizing tweets completed (with parameters: {})\n'.format
@@ -64,7 +66,7 @@ def main():
     classifier = MulticlassPerceptron(classes, train_corpus.get_all_feature_names(), \
                 learning_rate)
     classifier.train_and_test(epochs, train_corpus, test_corpus, fn_weights, \
-                fn_scores, token_params, [type])
+                fn_scores, token_params, type)
 
     print('\nFinalized prediction and evaluation.\nClass distribution in TEST data:')
     test_corpus.print_distr()

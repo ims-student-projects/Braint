@@ -50,7 +50,7 @@ class MulticlassPerceptron(object):
                 features: dictionary containing features and values for these
                 example: tweet object for which prediction is made
             Returns:
-                a tuple containg (predicted_label, activation)
+                a tuple containg (predicted_label, activation score)
         """
         weights = self.averaged_weights if test_mode else self.weights
         activations = []
@@ -70,15 +70,15 @@ class MulticlassPerceptron(object):
 
 
     def train_and_test(self, epochs, train_corpus, test_corpus, fn_weights=None,\
-                        fn_scores=None, token_params=None, types=None):
+                        fn_scores=None, token_params=None, type=None):
         result = Result()
         self.train(epochs, train_corpus, test_corpus, fn_weights, fn_scores, result)
-        result.draw_graph(types, token_params)
-
+        result.draw_graph(token_params, type)
+        """
         with open('final_results/tt2_50e_predictions.txt', 'w') as outf:
             for tweet in test_corpus:
                 outf.write(tweet.get_pred_label() + "\n")
-
+        """
 
     def train(self, num_iterations, train_corpus, test_corpus=None, \
             fn_weights=None, fn_scores=None, result=None):
@@ -89,6 +89,7 @@ class MulticlassPerceptron(object):
                 examples: corpus (iterable) containing Tweets
                 fn_acc: file where to write accuracy scores for each iteration
                 fn_acc: file where to write weights for each iteration
+                # TODO
         """
         self.num_steps = num_iterations * train_corpus.length()
         self.curr_step = num_iterations * train_corpus.length()
@@ -96,10 +97,10 @@ class MulticlassPerceptron(object):
         for i in range(num_iterations):
             corr = 0  # correct predictions during current iteration
             train_corpus.shuffle()  # shuffle tweets
-            for example in train_corpus:
-                true_label = example.get_gold_label()
-                tweet_features = example.get_features() # dict
-                prediction = self.__predict(tweet_features, example)
+            for tweet in train_corpus:
+                true_label = tweet.get_gold_label()
+                tweet_features = tweet.get_features() # dict
+                prediction = self.__predict(tweet_features, tweet)
                 self.__update_weights(tweet_features, prediction[0], true_label)
                 self.curr_step -= 1
                 # Count of correct predictions
@@ -145,6 +146,7 @@ class MulticlassPerceptron(object):
             scores = Scorer(test_corpus)
             result.show(scores,0)
 
+
     def test(self, test_corpus, test_mode=False):
         """
         Will use custom weights is passed by argument, otherwise class weights
@@ -160,7 +162,7 @@ class MulticlassPerceptron(object):
 
         for example in test_corpus:
             tweet_features = example.get_features() # dict
-            prediction = self.__predict(tweet_features, example, test_mode=True)
+            prediction = self.__predict(tweet_features, example, test_mode)
 
 
     def save_model(self, filename):
