@@ -1,5 +1,6 @@
 from keras.models import Sequential, Model
-from keras.layers import LSTM, Dropout, Dense, Embedding, Bidirectional, Convolution1D, MaxPooling1D, Flatten, Merge, Input
+from keras.layers import LSTM, Dropout, Dense, Embedding, Bidirectional, Conv1D, MaxPooling1D, Flatten, Input, SpatialDropout1D, Concatenate
+from utils.attention import Attention
 
 class LSTM_Model(object):
     """
@@ -55,7 +56,7 @@ class LSTM_Model(object):
 
             # Define the model
             inp = Input(shape=(self.max_sequence_len,))
-            if self.weights:
+            if self.weights is not None:
                 emb = Embedding(self.input_dim + 1,
                         self.embedding_dim,
                         weights=[self.weights],
@@ -66,8 +67,9 @@ class LSTM_Model(object):
                         self.embedding_dim,
                         input_length=self.max_sequence_len,
                         trainable=True)(inp)
-            x = SpatialDropout1D(0.35)(emb)
+            x = SpatialDropout1D(self.dropout)(emb)
             x = LSTM(self.lstm_dim, return_sequences=True, dropout=0.15, recurrent_dropout=0.15)(x)
+            x = SpatialDropout1D(self.dropout)(x) # maybe remove this
             x, attention = Attention()(x)
             x = Dense(6, activation="sigmoid")(x)
 
@@ -76,9 +78,9 @@ class LSTM_Model(object):
               optimizer=self.optimizer,
               metrics=['accuracy'])
 
-            attention_model = Model(inputs=inp, outputs=attention) # Model to print out the attention data
+            self.attention_model = Model(inputs=inp, outputs=attention) # Model to print out the attention data
 
-            return model, attention_model
+            return model
         else:
             model = Sequential()
             if self.weights is not None:
@@ -149,7 +151,7 @@ class BiLSTM_Model(object):
 
             # Define the model
             inp = Input(shape=(self.max_sequence_len,))
-            if self.weights:
+            if self.weights is not None:
                 emb = Embedding(self.input_dim + 1,
                         self.embedding_dim,
                         weights=[self.weights],
@@ -160,8 +162,9 @@ class BiLSTM_Model(object):
                         self.embedding_dim,
                         input_length=self.max_sequence_len,
                         trainable=True)(inp)
-            x = SpatialDropout1D(0.35)(emb)
+            x = SpatialDropout1D(self.dropout)(emb)
             x = Bidirectional(LSTM(self.lstm_dim, return_sequences=True, dropout=0.15, recurrent_dropout=0.15))(x)
+            x = SpatialDropout1D(self.dropout)(x) # maybe remove this
             x, attention = Attention()(x)
             x = Dense(6, activation="sigmoid")(x)
 
@@ -170,9 +173,9 @@ class BiLSTM_Model(object):
               optimizer=self.optimizer,
               metrics=['accuracy'])
 
-            attention_model = Model(inputs=inp, outputs=attention) # Model to print out the attention data
+            self.attention_model = Model(inputs=inp, outputs=attention) # Model to print out the attention data
 
-            return model, attention_model
+            return model
         else:
             model = Sequential()
             if self.weights is not None:
@@ -198,58 +201,88 @@ class BiLSTM_Model(object):
 
 class CNN_Model(object):
 
-    def __init__(self, max_length, dim=300, dropout=.5, output_dim=8, weights=None):
+    def __init__(self, vocab_size, embedding_dim, output_dim, weights=None, params=None):
         self.input_dim = vocab_size
         self.embedding_dim = embedding_dim
         self.weights = weights
-        self.max_length = max_length
         self.dim = embedding_dim
-        self.dropout = dropout
         self.output_dim = output_dim
-        self.filter_sizes = filter_sizes
-        self.num_filters = num_filters
-        self.trainable = trainable
-        self.optimizer = 'adam'
-        self.loss = 'categorical_crossentropy'
+        self.parse_params(params)
         self.model = self.create_cnn()
 
+    def parse_params(self, params=None):
+        # TODO:
+        # num_hidden_layers
+        if 'filter_sizes' in params:
+            self.filter_sizes = params['filter_sizes']
+        else:
+            self.filter_sizes = (2,3,4)
+        if 'num_filters' in params:
+            self.num_filters = params['num_filters']
+        else:
+            self.num_filters = 3
+        if 'attention' in params:
+            self.attention = params['attention']
+        else:
+            self.attention = False
+        if 'max_len' in params:
+            self.max_sequence_len = params['max_len']
+        else:
+            self.max_sequence_len = 60
+        if 'dropout' in params:
+            self.dropout = params['dropout']
+        else:
+            self.dropout = .5
+        if 'trainable_embeddings' in params:
+            self.trainable = params['trainable_embeddings']
+        else:
+            self.trainable = True
+        if 'optimizer' in params:
+            self.optimizer = params['optimizer']
+        else:
+            self.optimizer = 'adam'
+        if 'loss' in params:
+            self.loss = params['loss']
+        else:
+            self.loss = 'categorical_crossentropy'
            
     def create_cnn(self):
-    # Convolutional model
-    graph_in = Input(shape=(self.max_length, len(self.embedding_dim)))
-    convs = []
-    for fsz in self.filter_sizes:
-        conv = Convolution1D(nb_filter=self.num_filters,
-                 filter_length=fsz,
-                 border_mode='valid',
-                 activation='relu',
-                 subsample_length=1)(graph_in)
-        pool = MaxPooling1D(pool_length=2)(conv)
-        flatten = Flatten()(pool)
-        convs.append(flatten)
-        
-    out = Merge(mode='concat')(convs)
-    graph = Model(input=graph_in, output=out)
+        # Convolutional model
+        graph_in = Input(shape=(self.max_sequence_len, self.embedding_dim))
+        convs = []
+        for fsz in self.filter_sizes:
+            conv = Conv1D(filters=self.num_filters,
+                    kernel_size=fsz,
+                    padding='valid',
+                    activation='relu',
+                    strides=1)(graph_in)
+            pool = MaxPooling1D(pool_size=2)(conv)
+            flatten = Flatten()(pool)
+            convs.append(flatten)
+    
+        #out = Merge(mode='concat')(convs)
+        out = Concatenate()(convs)
+        graph = Model(inputs=graph_in, outputs=out)
 
-    # Full model
-    model = Sequential()
-    if self.weights is not None:
-        model.add(Embedding(self.input_dim + 1,
-                        self.embedding_dim,
-                        weights=[self.weights],
-                        input_length=self.max_sequence_len,
-                        trainable=True))
-    else:
-        model.add(Embedding(self.input_dim + 1,
-                        self.embedding_dim,
-                        input_length=self.max_sequence_len,
-                        trainable=True))
-    model.add(Dropout(self.dropout))
-    model.add(graph)
-    model.add(Dense(self.dim, activation='relu'))
-    model.add(Dropout(self.dropout))
-    model.add(Dense(self.output_dim, activation='softmax'))
+        # Full model
+        model = Sequential()
+        if self.weights is not None:
+            model.add(Embedding(self.input_dim + 1,
+                            self.embedding_dim,
+                            weights=[self.weights],
+                            input_length=self.max_sequence_len,
+                            trainable=True))
+        else:
+            model.add(Embedding(self.input_dim + 1,
+                            self.embedding_dim,
+                            input_length=self.max_sequence_len,
+                            trainable=True))
+        model.add(Dropout(self.dropout))
+        model.add(graph)
+        model.add(Dense(self.dim, activation='relu'))
+        model.add(Dropout(self.dropout))
+        model.add(Dense(self.output_dim, activation='softmax'))
 
-    model.compile(optimizer=self.optimizer, loss=self.loss,
-                  metrics=['accuracy'])
-    return model
+        model.compile(optimizer=self.optimizer, loss=self.loss,
+                    metrics=['accuracy'])
+        return model

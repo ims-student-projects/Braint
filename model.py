@@ -1,12 +1,17 @@
+import itertools
 import pickle
+import tensorflow as tf
+from keras.backend.tensorflow_backend import set_session
 import numpy as np
+from keras import backend as K
 from keras.models import load_model, model_from_json
-from keras.callbacks import ModelCheckpoint
+from keras.callbacks import ModelCheckpoint, EarlyStopping
 from keras.preprocessing.sequence import pad_sequences
+
 
 from utils.WordVecs import *
 
-from architectures import LSTM_Model , BiLSTM_Model #, CNN
+from architectures import LSTM_Model , BiLSTM_Model, CNN_Model
 from corpus import Corpus
 from tokenizer import Tokenizer
 
@@ -18,20 +23,24 @@ class Model(object):
     def __tweet2idx(self, tweet, w2idx):
         return np.array([w2idx[token] if token in w2idx else w2idx['<UNK>'] for token in tweet])
 
-    def __convert_format(self, corpus, classes, w2idx, max_len):
+    def __convert_format(self, corpus, classes, w2idx, max_len, only_predict:bool=False):
         dataset = []
         for tweet in corpus:
             dataset.append((tweet.get_text(), tweet.get_gold_label()))
         x_data, y_data = zip(*dataset)
 
         x_data = [self.__tokenizer.get_only_tokens(tweet) for tweet in x_data]
-        y_data = [classes[label] for label in y_data]
+        if not only_predict:
+            y_data = [classes[label] for label in y_data]
 
-        # class to one hot vector
-        y_data = [np.eye(len(classes))[label] for label in y_data]
+            # class to one hot vector
+            y_data = [np.eye(len(classes))[label] for label in y_data]
+            y_data = np.array(y_data)
+        else:
+            y_data = None
         # to np array
         x_data = np.array([self.__tweet2idx(tweet, w2idx) for tweet in x_data])
-        y_data = np.array(y_data)
+        
         # padding
         x_data = pad_sequences(x_data, max_len)
         return x_data, y_data
@@ -71,6 +80,11 @@ class Model(object):
         return embeddings, W, word_idx_map    
     
     def train(self, train_corpus, classes, architecture, params, num_epochs, max_len, embedding_file, file_type, min_count, save_dir, dev_corpus=None):
+        config = tf.ConfigProto()
+        config.gpu_options.allow_growth = True
+        sess = tf.Session(config=config)
+        set_session(sess)
+
         params['max_len'] = max_len
         print('Creating vocab...')
         vocab = self.__create_vocab(train_corpus)
@@ -79,8 +93,8 @@ class Model(object):
         print('Loading embeddings...')
 
         # filter embedding file with vocab
-        vecs = WordVecs(embedding_file, file_type, vocab)
-
+        #vecs = WordVecs(embedding_file, file_type, vocab)
+        vecs = WordVecs(embedding_file, file_type)
 
         print('finished loading')
         print('Creating wordvecs, W and w2idx map...')
@@ -112,16 +126,23 @@ class Model(object):
         
         #checkpointing
         filepath = save_dir + "weights-improvement-{epoch:02d}-{val_acc:.2f}.hdf5"
-        checkpoint = ModelCheckpoint(filepath, monitor='val_acc', verbose=1, save_best_only=True, mode='auto')
+        callbacks = [ModelCheckpoint(filepath, monitor='val_acc', verbose=1, save_best_only=True, mode='auto'),
+                        EarlyStopping(monitor='val_acc', patience=3, mode='max')]
         # train
+       
         if dev_corpus:
-            hist = nn.model.fit(x_train, y_train, validation_data=[x_dev, y_dev], epochs=num_epochs, verbose=1, callbacks=[checkpoint])
+            hist = nn.model.fit(x_train, y_train, validation_data=[x_dev, y_dev], epochs=num_epochs, verbose=1, callbacks=callbacks)
         else:
-            hist = nn.model.fit(x_train, y_train, validation_split=0.1, epochs=num_epochs, verbose=1, callbacks=[checkpoint])
+            hist = nn.model.fit(x_train, y_train, validation_split=0.1, epochs=num_epochs, verbose=1, callbacks=callbacks)
+
         print(hist.history)
 
         print('Finished training ' + architecture)
         
+        # serialize attention model
+        if 'attention' in params and params['attention']:
+            attention_model = nn.attention_model
+            attention_model.save(save_dir + 'attention_model.h5')
         # serialize model architecture to JSON
         model_json = nn.model.to_json()
         with open(save_dir + "model.json", "w") as json_file:
@@ -131,15 +152,20 @@ class Model(object):
         pickle.dump(max_len, open(save_dir + "max_sequence_len.p", "wb"))
         pickle.dump(word_idx_map, open(save_dir + "word_idx_map.p", "wb"))
         pickle.dump(classes, open(save_dir + "classes.p", "wb" ))
+        K.clear_session()
 
-    def test(self, save_dir, path_weights, test_corpus):   
+
+    def test(self, save_dir, path_weights, test_corpus, attention:bool=False, only_predict:bool=False):   
         classes = pickle.load(open(save_dir + "classes.p", "rb"))
         inv_classes = {v: k for k, v in classes.items()}
         max_len = pickle.load(open(save_dir + "max_sequence_len.p", "rb"))
         word_idx_map = pickle.load(open(save_dir + "word_idx_map.p", "rb"))
         inv_word_idx_map = {v: k for k, v in word_idx_map.items()}
         # convert test data into input format
-        x_test, y_test = self.__convert_format(test_corpus, classes, word_idx_map, max_len)
+        if only_predict:
+            x_test, _ = self.__convert_format(test_corpus, classes, word_idx_map, max_len, True)
+        else: 
+            x_test, y_test = self.__convert_format(test_corpus, classes, word_idx_map, max_len)
         # load model architecture
         json_file = open(save_dir + 'model.json', 'r')
         loaded_model = json_file.read()
@@ -150,40 +176,49 @@ class Model(object):
         print("Loaded model from disk")
         model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
 
-        # evaluate model & print accuracy
-        score = model.evaluate(x_test, y_test, verbose=0)
-        print("%s: %.2f%%" % (model.metrics_names[1], score[1]*100))
+        if not only_predict:
+            # evaluate model & print accuracy
+            score = model.evaluate(x_test, y_test, verbose=0)
+            print("%s: %.2f%%" % (model.metrics_names[1], score[1]*100))
 
         # get predictions
-        predictions = model.predict_classes(x_test, verbose=1)
+        predictions = model.predict(x_test, verbose=1)
+        # one hot vector to class
+        predictions = [np.argmax(prediction,axis=-1) for prediction in predictions]
+        true_labels = [np.argmax(label,axis=-1) for label in y_test]
 
-        # write predictions to file
+        word_attentions = []
+        if attention:
+            attention_model = load_model(save_dir + "attention_model.h5")
+            print("Attention model loaded from disk")
+            attention_model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
+            attentions = attention_model.predict(x_test, verbose=1)
+            for importances, tweet in zip(attentions, x_test):
+                temp = []
+                for importance, token in zip(importances, tweet):
+                    if token != 0:
+                        temp.append((inv_word_idx_map[token], importance))
+                word_attentions.append(temp)
+
+        # write predictions to file 
+        i = 0
         with open(save_dir + 'predictions.csv', 'w') as out:
-            for tweet, prediction in zip(x_test, predictions):
-                tokens = [inv_word_idx_map[idx] if idx in inv_word_idx_map else '' for idx in tweet]
-                text = " ".join(tokens)
-                label = inv_classes[prediction]
-                out.write(label + '\t' + text + '\n')
-                     
+            if attention:
+                out.write("true_label\tpredicted_label\ttweet\tword_attention\n")
+            else:
+                out.write("true_label\tpredicted_label\ttweet\n")
+            for label, prediction, word_attention in itertools.zip_longest(true_labels, predictions, word_attentions):
+                pred_label = inv_classes[prediction]
+                true_label = inv_classes[label]
+                text = test_corpus.get_ith(i).get_text()
+                out.write(true_label + "\t" + pred_label + "\t" + text)
+                if attention:
+                    out.write("\t" + str(word_attention))
+                out.write("\n")
+                i += 1
+                    
         # write predictions in tweets of test corpus
         # order of predictions should be the same as oder of tweets in test_corpus
         for i in range(len(predictions)):
             test_corpus.get_ith(i).set_pred_label(inv_classes[predictions[i]])
-
         return test_corpus
-
-
-""" 
-# code to get attention weights for each input word
-# code taken from:
-# https://srome.github.io/Understanding-Attention-in-Neural-Networks-Mathematically/
-# TODO: adapt so that it works with this model
-
-def get_word_importances(text):
-    lt = tokenizer.texts_to_sequences([text])
-    x = pad_sequences(lt, maxlen=maxlen)
-    p = model.predict(x)
-    att = attention_model.predict(x)
-    return p, [(reverse_token_map.get(word), importance) for word, importance in zip(x[0], att[0]) if word in reverse_token_map]
-"""
-        
