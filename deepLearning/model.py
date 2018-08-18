@@ -93,6 +93,15 @@ class Model(object):
                 min_count    : int, minum number of occurences
                 save_dir     : String, directiory to save model and weights to
                 dev_corpus   :(optional) Corpus containing Tweets for development if None a validation split of 90/10 is used
+
+            Files that are written:
+            'attention_model.h5' : only if architecture is LSTM+ATT or BiLSTM+ATT
+            'model.json'         : model architecture
+            'vocab.p'            : vocab of traing data
+            'max_sequence_len.p' : maximum sequence length
+            'word_idx_map.p'     : word to id mapping
+            'classes.p'          : classes to id mapping
+
         """
         # restrict gpu memory consumption
         config = tf.ConfigProto()
@@ -148,7 +157,7 @@ class Model(object):
             nn.model.fit(x_train, y_train, validation_split=0.1, epochs=num_epochs, verbose=1, callbacks=callbacks)
         print('Finished training ' + architecture)   
         # serialize attention model
-        if 'attention' in params and params['attention']:
+        if architecture == 'LSTM+ATT' or architecture == 'BiLSTM+ATT':
             attention_model = nn.attention_model
             attention_model.save(save_dir + 'attention_model.h5')
         # serialize model architecture to JSON
@@ -161,7 +170,18 @@ class Model(object):
         pickle.dump(word_idx_map, open(save_dir + "word_idx_map.p", "wb"))
         pickle.dump(classes, open(save_dir + "classes.p", "wb" ))
 
-    def get_word_attention(self, save_dir, path_weights, test_corpus):
+    def get_word_attention(self, saved_dir, test_corpus):
+        """ Gets attention score for all tokens in the tweet for every Tweet in the test_corpus. 
+
+            Args:
+                saved_dir    : String, path/name to file where weights of the attention model, 
+                                        the file containg the max_sequence_length (for padding; assumed to be called "max_sequence_len.p") and 
+                                        token to id mapping (assumed to be called word_idx_map.p) are stored
+                test_corpus  : Corpus, containg the Tweets for which attentions should be calculated
+            
+            Returns:
+                list of list of tupels containg the attention values for each token.
+        """
         inv_classes = {v: k for k, v in classes.items()}
         max_len = pickle.load(open(save_dir + "max_sequence_len.p", "rb"))
         word_idx_map = pickle.load(open(save_dir + "word_idx_map.p", "rb"))
@@ -169,7 +189,7 @@ class Model(object):
         # convert test data into input format
         x_test, y_test = self.__convert_format(test_corpus, classes, word_idx_map, max_len)
         # load model
-        attention_model = load_model(save_dir + "attention_model.h5")
+        attention_model = load_model(saved_dir)
         print("Attention model loaded from disk")
         # compile model
         attention_model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
@@ -184,7 +204,24 @@ class Model(object):
             word_attentions.append(temp)
         return word_attentions
 
-    def predict(self, save_dir, path_weights, test_corpus):
+    def predict(self, saved_dir, path_weights, test_corpus):
+        """ Gets predictions tweet for every Tweet in the test_corpus and writes them into the Tweet data structure as well as to file. 
+
+            Args:
+                saved_dir    : String, path/name to file where weights of the model,
+                                        architecture of the model (assumed to be called model.json)
+                                        the file containg the max_sequence_length (for padding; assumed to be called "max_sequence_len.p"), 
+                                        token to id mapping (assumed to be called word_idx_map.p), 
+                                        classes to id mapping (assumed to be called classes.p)
+                                        are stored
+                path_weights : String, path/name to file where model weights are stored
+                test_corpus  : Corpus, containg the Tweets for which attentions should be calculated
+            
+            Writes file
+            'predictions.csv' containg the predition of the model as well as the tweet itself
+            into the saved_dir.
+
+        """
         classes = pickle.load(open(save_dir + "classes.p", "rb"))
         inv_classes = {v: k for k, v in classes.items()}
         max_len = pickle.load(open(save_dir + "max_sequence_len.p", "rb"))
@@ -193,7 +230,7 @@ class Model(object):
         # convert test data into input format
         x_test, _ = self.__convert_format(test_corpus, classes, word_idx_map, max_len, True)
         # load model architecture
-        json_file = open(save_dir + 'model.json', 'r')
+        json_file = open(saved_dir + 'model.json', 'r')
         loaded_model = json_file.read()
         json_file.close()
         model = model_from_json(loaded_model)
@@ -208,7 +245,7 @@ class Model(object):
         true_labels = [np.argmax(label,axis=-1) for label in y_test]
         # write predictions to file 
         i = 0
-        with open(save_dir + 'predictions.csv', 'w') as out: 
+        with open(saved_dir + 'predictions.csv', 'w') as out: 
             out.write("tpredicted_label\ttweet\n")
             for prediction in predictions:
                 pred_label = inv_classes[prediction]
@@ -221,7 +258,23 @@ class Model(object):
             test_corpus.get_ith(i).set_pred_label(inv_classes[predictions[i]])
         return test_corpus
 
-    def test(self, save_dir, path_weights, test_corpus):   
+    def test(self, save_dir, path_weights, test_corpus):
+        """ Tests predictions of the models for the Tweets in test_corpus. Writes predictions into the Tweet data structure as well as to file. 
+
+            Args:
+                saved_dir    : String, path/name to file where weights of the model,
+                                        architecture of the model (assumed to be called model.json)
+                                        the file containg the max_sequence_length (for padding; assumed to be called "max_sequence_len.p"), 
+                                        token to id mapping (assumed to be called word_idx_map.p), 
+                                        classes to id mapping (assumed to be called classes.p)
+                                        are stored
+                path_weights : String, path/name to file where model weights are stored
+                test_corpus  : Corpus, containg the Tweets for which attentions should be calculated
+            
+            Writes file
+            'predictions.csv' containg the predition of the model as well as the tweet itself
+            into the saved_dir.
+        """ 
         classes = pickle.load(open(save_dir + "classes.p", "rb"))
         inv_classes = {v: k for k, v in classes.items()}
         max_len = pickle.load(open(save_dir + "max_sequence_len.p", "rb"))
