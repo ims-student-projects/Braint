@@ -12,7 +12,25 @@ sys.path.append('../')
 from utils.attention import Attention
 
 class LSTM_Model(object):
+    """ A simple LSTM architecture.
+
+        The different parameters (params) are:
+        max_len : int, the maximum sequence lenght
+        dropout : int (between 0 and 1)
+        trainable_embeddings: bool
+        optimizer : the keras optimizer that should be used
+        loss : the keras loss function that should be used
+    """
     def __init__(self, vocab_size, embedding_dim, output_dim, weights=None, params=None):
+        """ Inits the LSTM model.
+
+            Args:
+                vocab_size  :   int, size of the vocabulary
+                embedding_dim:  int, dimensions of embeddings
+                output_dim: int, number of classes
+                weights :   (optional) pre-trained embeddings
+                params  :   (optional) the model parameters to use if None default parameters are used
+        """
         self.input_dim = vocab_size
         self.embedding_dim = embedding_dim
         self.lstm_dim = self.embedding_dim
@@ -38,9 +56,9 @@ class LSTM_Model(object):
             self.loss = params['loss']
         else:
             self.loss = 'categorical_crossentropy'
-        self.model = self.create_LSTM()
+        self.model = self.__create_LSTM()
 
-    def create_LSTM(self):
+    def __create_LSTM(self):
         model = Sequential()
         if self.weights is not None:
             model.add(Embedding(self.input_dim + 1,
@@ -62,7 +80,25 @@ class LSTM_Model(object):
         return model
 
 class LSTM_ATT_Model(object):
+        """ A LSTM architecture with attention mechanism.
+
+        The different parameters (params) are:
+        max_len : int, the maximum sequence lenght
+        dropout : int (between 0 and 1)
+        trainable_embeddings: bool
+        optimizer : the keras optimizer that should be used
+        loss : the keras loss function that should be used
+    """
     def __init__(self, vocab_size, embedding_dim, output_dim, weights=None, params=None):
+        """ Inits the LSTM+ATT model.
+
+            Args:
+                vocab_size  :   int, size of the vocabulary
+                embedding_dim:  int, dimensions of embeddings
+                output_dim: int, number of classes
+                weights :   (optional) pre-trained embeddings
+                params  :   (optional) the model parameters to use if None default parameters are used
+        """
         self.input_dim = vocab_size
         self.embedding_dim = embedding_dim
         self.lstm_dim = self.embedding_dim
@@ -88,9 +124,9 @@ class LSTM_ATT_Model(object):
             self.loss = params['loss']
         else:
             self.loss = 'categorical_crossentropy'
-        self.model = self.create_LSTM_ATT()
+        self.model = self.__create_LSTM_ATT()
 
-    def create_LSTM_ATT(self):
+    def __create_LSTM_ATT(self):
         inp = Input(shape=(self.max_sequence_len,))
         if self.weights is not None:
             emb = Embedding(self.input_dim + 1,
@@ -115,8 +151,25 @@ class LSTM_ATT_Model(object):
         return model    
 
 class BiLSTM_Model(object):
+        """ A simple BiLSTM architecture.
 
+        The different parameters (params) are:
+        max_len : int, the maximum sequence lenght
+        dropout : int (between 0 and 1)
+        trainable_embeddings: bool
+        optimizer : the keras optimizer that should be used
+        loss : the keras loss function that should be used
+    """
     def __init__(self, vocab_size, embedding_dim, output_dim, weights=None, params=None):
+        """ Inits the BiLSTM model.
+
+            Args:
+                vocab_size  :   int, size of the vocabulary
+                embedding_dim:  int, dimensions of embeddings
+                output_dim: int, number of classes
+                weights :   (optional) pre-trained embeddings
+                params  :   (optional) the model parameters to use if None default parameters are used
+        """
         self.input_dim = vocab_size
         self.embedding_dim = embedding_dim
         self.lstm_dim = self.embedding_dim
@@ -142,9 +195,9 @@ class BiLSTM_Model(object):
             self.loss = params['loss']
         else:
             self.loss = 'categorical_crossentropy'
-        self.model = self.create_BiLSTM()
+        self.model = self.__create_BiLSTM()
 
-    def create_BiLSTM(self):
+    def __create_BiLSTM(self):
         model = Sequential()
         if self.weights is not None:
             model.add(Embedding(self.input_dim + 1,
@@ -166,8 +219,25 @@ class BiLSTM_Model(object):
         return model
 
 class BiLSTM_ATT_Model(object):
+    """ A BiLSTM architecture with attention mechanism.
 
+        The different parameters (params) are:
+        max_len : int, the maximum sequence lenght
+        dropout : int (between 0 and 1)
+        trainable_embeddings: bool
+        optimizer : the keras optimizer that should be used
+        loss : the keras loss function that should be used
+    """
     def __init__(self, vocab_size, embedding_dim, output_dim, weights=None, params=None):
+        """ Inits the BiLSTM+ATT model.
+
+            Args:
+                vocab_size  :   int, size of the vocabulary
+                embedding_dim:  int, dimensions of embeddings
+                output_dim: int, number of classes
+                weights :   (optional) pre-trained embeddings
+                params  :   (optional) the model parameters to use if None default parameters are used
+        """
         self.input_dim = vocab_size
         self.embedding_dim = embedding_dim
         self.lstm_dim = self.embedding_dim
@@ -193,9 +263,9 @@ class BiLSTM_ATT_Model(object):
             self.loss = params['loss']
         else:
             self.loss = 'categorical_crossentropy'
-        self.model = self.create_BiLSTM_ATT()
+        self.model = self.__create_BiLSTM_ATT()
 
-    def create_BiLSTM_ATT(self):
+    def __create_BiLSTM_ATT(self):
         inp = Input(shape=(self.max_sequence_len,))
         if self.weights is not None:
             emb = Embedding(self.input_dim + 1,
@@ -220,8 +290,27 @@ class BiLSTM_ATT_Model(object):
         return model
 
 class CNN_Model(object):
+    """ A simple CNN architecture with one convolutional layer.
 
+        The different parameters (params) are:
+        max_len : int, the maximum sequence lenght
+        dropout : int (between 0 and 1)
+        trainable_embeddings: bool
+        optimizer : the keras optimizer that should be used
+        loss : the keras loss function that should be used
+        filter_sizes : the filter sizes that should be used
+        num_filters : the number of filters that should be used
+    """
     def __init__(self, vocab_size, embedding_dim, output_dim, weights=None, params=None):
+        """ Inits the CNN model.
+
+            Args:
+                vocab_size  :   int, size of the vocabulary
+                embedding_dim:  int, dimensions of embeddings
+                output_dim: int, number of classes
+                weights :   (optional) pre-trained embeddings
+                params  :   (optional) the model parameters to use if None default parameters are used
+        """
         self.input_dim = vocab_size
         self.embedding_dim = embedding_dim
         self.weights = weights
@@ -255,9 +344,9 @@ class CNN_Model(object):
             self.num_filters = params['num_filters']
         else:
             self.num_filters = 3
-        self.model = self.create_cnn()
+        self.model = self.__create_cnn()
            
-    def create_cnn(self):
+    def __create_cnn(self):
         # Convolutional model
         graph_in = Input(shape=(self.max_sequence_len, self.embedding_dim))
         convs = []
