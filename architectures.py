@@ -67,9 +67,8 @@ class LSTM_Model(object):
                         self.embedding_dim,
                         input_length=self.max_sequence_len,
                         trainable=True)(inp)
-            x = SpatialDropout1D(self.dropout)(emb)
+            x = SpatialDropout1D(0.35)(emb)
             x = LSTM(self.lstm_dim, return_sequences=True, dropout=0.15, recurrent_dropout=0.15)(x)
-            x = SpatialDropout1D(self.dropout)(x) # maybe remove this
             x, attention = Attention()(x)
             x = Dense(6, activation="sigmoid")(x)
 
@@ -162,9 +161,8 @@ class BiLSTM_Model(object):
                         self.embedding_dim,
                         input_length=self.max_sequence_len,
                         trainable=True)(inp)
-            x = SpatialDropout1D(self.dropout)(emb)
+            x = SpatialDropout1D(0.35)(emb)
             x = Bidirectional(LSTM(self.lstm_dim, return_sequences=True, dropout=0.15, recurrent_dropout=0.15))(x)
-            x = SpatialDropout1D(self.dropout)(x) # maybe remove this
             x, attention = Attention()(x)
             x = Dense(6, activation="sigmoid")(x)
 
