@@ -77,14 +77,11 @@ def __run_experiment(working_dir, save_dir, train_filename, word_embed_filename,
     # free memory
     del model
 
-def train_architecture_experiment(working_dir, experiment_dir, word_embeddings, architecture, train_filename, dev_file, dev_labels, test_file, test_labels):
+def train_architecture_experiment(working_dir, experiment_dir, word_embeddings, architecture, train_filename, dev_file, dev_labels, test_file, test_labels, params, train_params):
 
     # Experiments
     print('Running Architectures Experiment')
     print('Using full training data')
-
-    params = {'dropout' : .5, 'trainable_embeddings' : True}
-    train_params = {'num_epochs' : 15, 'min_count' : 1}
 
     # create output directory
     directory = os.path.dirname(working_dir + experiment_dir + architecture + '/')
@@ -95,7 +92,7 @@ def train_architecture_experiment(working_dir, experiment_dir, word_embeddings, 
     __run_experiment(working_dir, working_dir + experiment_dir + architecture + '/', train_filename, word_embeddings, 'word2vec', 
                       architecture, max_len, params, train_params, dev_file, dev_labels)
 
-def train_word_embedding_experiment(working_dir, experiment_dir, word_embeddings, architecture, train_filename, dev_file, dev_labels, test_file, test_labels):
+def train_word_embedding_experiment(working_dir, experiment_dir, word_embeddings, architecture, train_filename, dev_file, dev_labels, test_file, test_labels, params, train_params):
 
     # Experiments
     print('Running Word Embedding Experiments')
@@ -142,10 +139,14 @@ def main():
     # filename of word_embeddings
     word_embeddings = 'w2v_cbow_hs_300_w5.txt'
     # architecture
-    architecture = 'BiLSTM'
+    architecture = 'BiLSTM+ATT'
     # filename of best weights
     best_weights = 'weights-improvement-07-0.64.hdf5'
-    
+    # parameters
+    params = {'dropout' : .5, 'trainable_embeddings' : True, 'attention' : True}
+    # train parameters
+    train_params = {'num_epochs' : 15, 'min_count' : 1}
+
     # filenames of the train, dev and test data
     train_filename = 'train-v2.csv'
     dev_file = 'trial-v2.csv'
@@ -160,8 +161,8 @@ def main():
     test_f = data_dir + test_file
     test_l = data_dir + test_labels
 
-    # train_word_embedding_experiment(working_dir, experiment_dir, word_embeddings, architecture, train_f, dev_f, dev_l, test_f, test_l)
-    train_architecture_experiment(working_dir, experiment_dir, word_embeddings, architecture, train_f, dev_f, dev_l, test_f, test_l)
+    # train_word_embedding_experiment(working_dir, experiment_dir, word_embeddings, architecture, train_f, dev_f, dev_l, test_f, test_l, params, train_params)
+    train_architecture_experiment(working_dir, experiment_dir, word_embeddings, architecture, train_f, dev_f, dev_l, test_f, test_l, params, train_params)
     # eval_word_embedding_experiment(working_dir, experiment_dir, word_embeddings, best_weights, test_f, test_l)
     # eval_architecture_experiment(working_dir, experiment_dir, architecture, best_weights, test_f, test_l)
 

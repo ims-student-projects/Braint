@@ -65,7 +65,6 @@ class LSTM_Model(object):
             x = SpatialDropout1D(self.dropout)(emb)
             x = LSTM(self.lstm_dim, return_sequences=True)(x)
             x, attention = Attention()(x)
-            x = SpatialDropout1D(self.dropout)(x)
             x = Dense(self.output_dim, activation="sigmoid")(x)
             model = Model(inputs=inp, outputs=x)
             model.compile(loss=self.loss,
@@ -148,7 +147,6 @@ class BiLSTM_Model(object):
             x = SpatialDropout1D(self.dropout)(emb)
             x = Bidirectional(LSTM(self.lstm_dim, return_sequences=True))(x)
             x, attention = Attention()(x)
-            x = SpatialDropout1D(self.dropout)(x)
             x = Dense(self.output_dim, activation="sigmoid")(x)
             model = Model(inputs=inp, outputs=x)
             model.compile(loss=self.loss,

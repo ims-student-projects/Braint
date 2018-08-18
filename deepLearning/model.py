@@ -110,7 +110,11 @@ class Model(object):
         print('Creating nn...')
         if architecture == 'LSTM':
             nn = LSTM_Model(vocab_size, embedding_dim, output_dim, W, params)
+        if architecture == 'LSTM+ATT':
+            nn = LSTM_Model(vocab_size, embedding_dim, output_dim, W, params)
         elif architecture == 'BiLSTM':
+            nn = BiLSTM_Model(vocab_size, embedding_dim, output_dim, W, params)
+        elif architecture == 'BiLSTM+ATT':
             nn = BiLSTM_Model(vocab_size, embedding_dim, output_dim, W, params)
         elif architecture == 'CNN':
             nn = CNN_Model(vocab_size, embedding_dim, output_dim, W, params)
