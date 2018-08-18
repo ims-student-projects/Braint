@@ -78,7 +78,22 @@ class Model(object):
             i += 1  
         return embeddings, W, word_idx_map    
     
-    def train(self, train_corpus, classes, architecture, params, num_epochs, max_len, embedding_file, file_type, min_count, save_dir, dev_corpus=None):
+    def train(self, train_corpus, classes, architecture, params, num_epochs:int, max_len:int, embedding_file, file_type, min_count:int, save_dir, dev_corpus=None):
+        """ Function to train a model.
+
+            Args:
+                train_corpus : Corpus containg the Tweets for training 
+                classes      : Dictionary containing a mapping from classification classes to ids
+                architecture : String one of LSTM, BiLSTM, CNN, LSTM+ATT, BiLSTM+ATT
+                params       : Dictionary containing a mapping from model parameters to values
+                num_epochs   : int, number of training iterations
+                max_len      : int, maximum sequence length
+                embedding_file : String, name/path to pretrained word embedding file
+                file_type    : String, Word2Vec (for text) or binary
+                min_count    : int, minum number of occurences
+                save_dir     : String, directiory to save model and weights to
+                dev_corpus   :(optional) Corpus containing Tweets for development if None a validation split of 90/10 is used
+        """
         # restrict gpu memory consumption
         config = tf.ConfigProto()
         config.gpu_options.allow_growth = True
