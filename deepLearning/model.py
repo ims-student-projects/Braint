@@ -22,6 +22,7 @@ class Model(object):
         self.__tokenizer = Tokenizer()
 
     def __tweet2idx(self, tweet, w2idx):
+        # maps tokens to ids
         return np.array([w2idx[token] if token in w2idx else w2idx['<UNK>'] for token in tweet])
 
     def __convert_format(self, corpus, classes, w2idx, max_len, only_predict:bool=False):

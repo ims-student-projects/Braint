@@ -143,7 +143,7 @@ def main():
     # filename of best weights
     best_weights = 'weights-improvement-07-0.64.hdf5'
     # parameters
-    params = {'dropout' : .5, 'trainable_embeddings' : True, 'attention' : True}
+    params = {'dropout' : .5, 'trainable_embeddings' : True}
     # train parameters
     train_params = {'num_epochs' : 15, 'min_count' : 1}
 

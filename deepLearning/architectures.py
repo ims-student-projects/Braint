@@ -11,6 +11,36 @@ sys.path.append('../')
 
 from utils.attention import Attention
 
+def parse_params(self, params=None):
+    if 'max_len' in params:
+        self.max_sequence_len = params['max_len']
+    else:
+        self.max_sequence_len = None
+    if 'dropout' in params:
+        self.dropout = params['dropout']
+    else:
+        self.dropout = .5
+    if 'trainable_embeddings' in params:
+        self.trainable = params['trainable_embeddings']
+    else:
+        self.trainable = True
+    if 'optimizer' in params:
+        self.optimizer = params['optimizer']
+    else:
+        self.optimizer = 'adam'
+    if 'loss' in params:
+        self.loss = params['loss']
+    else:
+        self.loss = 'categorical_crossentropy'
+    if 'filter_sizes' in params:
+        self.filter_sizes = params['filter_sizes']
+    else:
+        self.filter_sizes = (2,3,4)
+    if 'num_filters' in params:
+        self.num_filters = params['num_filters']
+    else:
+        self.num_filters = 3
+
 class LSTM_Model(object):
     def __init__(self, vocab_size, embedding_dim, output_dim, weights=None, params=None):
         self.input_dim = vocab_size
@@ -18,30 +48,8 @@ class LSTM_Model(object):
         self.lstm_dim = self.embedding_dim
         self.output_dim = output_dim
         self.weights = weights
-        self.parse_params(params)
+        parse_params(params)
         self.model = self.create_LSTM()
-
-    def parse_params(self, params=None):
-        if 'max_len' in params:
-            self.max_sequence_len = params['max_len']
-        else:
-            self.max_sequence_len = None
-        if 'dropout' in params:
-            self.dropout = params['dropout']
-        else:
-            self.dropout = .5
-        if 'trainable_embeddings' in params:
-            self.trainable = params['trainable_embeddings']
-        else:
-            self.trainable = True
-        if 'optimizer' in params:
-            self.optimizer = params['optimizer']
-        else:
-            self.optimizer = 'adam'
-        if 'loss' in params:
-            self.loss = params['loss']
-        else:
-            self.loss = 'categorical_crossentropy'
 
     def create_LSTM(self):
         model = Sequential()
@@ -71,30 +79,8 @@ class LSTM_ATT_Model(object):
         self.lstm_dim = self.embedding_dim
         self.output_dim = output_dim
         self.weights = weights
-        self.parse_params(params)
+        parse_params(params)
         self.model = self.create_LSTM_ATT()
-
-    def parse_params(self, params=None):
-        if 'max_len' in params:
-            self.max_sequence_len = params['max_len']
-        else:
-            self.max_sequence_len = None
-        if 'dropout' in params:
-            self.dropout = params['dropout']
-        else:
-            self.dropout = .5
-        if 'trainable_embeddings' in params:
-            self.trainable = params['trainable_embeddings']
-        else:
-            self.trainable = True
-        if 'optimizer' in params:
-            self.optimizer = params['optimizer']
-        else:
-            self.optimizer = 'adam'
-        if 'loss' in params:
-            self.loss = params['loss']
-        else:
-            self.loss = 'categorical_crossentropy'
 
     def create_LSTM_ATT(self):
         inp = Input(shape=(self.max_sequence_len,))
@@ -128,34 +114,8 @@ class BiLSTM_Model(object):
         self.lstm_dim = self.embedding_dim
         self.output_dim = output_dim
         self.weights = weights
-        self.parse_params(params)
+        parse_params(params)
         self.model = self.create_BiLSTM()
-
-    def parse_params(self, params=None):
-        if 'attention' in params:
-            self.attention = params['attention']
-        else:
-            self.attention = False
-        if 'max_len' in params:
-            self.max_sequence_len = params['max_len']
-        else:
-            self.max_sequence_len = None
-        if 'dropout' in params:
-            self.dropout = params['dropout']
-        else:
-            self.dropout = .5
-        if 'trainable_embeddings' in params:
-            self.trainable = params['trainable_embeddings']
-        else:
-            self.trainable = True
-        if 'optimizer' in params:
-            self.optimizer = params['optimizer']
-        else:
-            self.optimizer = 'adam'
-        if 'loss' in params:
-            self.loss = params['loss']
-        else:
-            self.loss = 'categorical_crossentropy'
 
     def create_BiLSTM(self):
         model = Sequential()
@@ -186,30 +146,8 @@ class BiLSTM_ATT_Model(object):
         self.lstm_dim = self.embedding_dim
         self.output_dim = output_dim
         self.weights = weights
-        self.parse_params(params)
+        parse_params(params)
         self.model = self.create_BiLSTM_ATT()
-
-    def parse_params(self, params=None):
-        if 'max_len' in params:
-            self.max_sequence_len = params['max_len']
-        else:
-            self.max_sequence_len = None
-        if 'dropout' in params:
-            self.dropout = params['dropout']
-        else:
-            self.dropout = .5
-        if 'trainable_embeddings' in params:
-            self.trainable = params['trainable_embeddings']
-        else:
-            self.trainable = True
-        if 'optimizer' in params:
-            self.optimizer = params['optimizer']
-        else:
-            self.optimizer = 'adam'
-        if 'loss' in params:
-            self.loss = params['loss']
-        else:
-            self.loss = 'categorical_crossentropy'
 
     def create_BiLSTM_ATT(self):
         inp = Input(shape=(self.max_sequence_len,))
@@ -243,42 +181,8 @@ class CNN_Model(object):
         self.weights = weights
         self.dim = embedding_dim
         self.output_dim = output_dim
-        self.parse_params(params)
+        parse_params(params)
         self.model = self.create_cnn()
-
-    def parse_params(self, params=None):
-        if 'filter_sizes' in params:
-            self.filter_sizes = params['filter_sizes']
-        else:
-            self.filter_sizes = (2,3,4)
-        if 'num_filters' in params:
-            self.num_filters = params['num_filters']
-        else:
-            self.num_filters = 3
-        if 'attention' in params:
-            self.attention = params['attention']
-        else:
-            self.attention = False
-        if 'max_len' in params:
-            self.max_sequence_len = params['max_len']
-        else:
-            self.max_sequence_len = 60
-        if 'dropout' in params:
-            self.dropout = params['dropout']
-        else:
-            self.dropout = .5
-        if 'trainable_embeddings' in params:
-            self.trainable = params['trainable_embeddings']
-        else:
-            self.trainable = True
-        if 'optimizer' in params:
-            self.optimizer = params['optimizer']
-        else:
-            self.optimizer = 'adam'
-        if 'loss' in params:
-            self.loss = params['loss']
-        else:
-            self.loss = 'categorical_crossentropy'
            
     def create_cnn(self):
         # Convolutional model
