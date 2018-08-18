@@ -40,7 +40,8 @@ class Tokenizer():
             replace_emojis = False,
             replace_num = False,
             remove_stopw = False,
-            remove_punct = False ):
+            remove_punct = False,
+            addit_mode = True ):
 
         # Convert to lowercase
         if lowercase:
@@ -49,10 +50,14 @@ class Tokenizer():
         # Codify emoticons as tokens
         for emoticon in emoticon_to_label.keys():
             if re.search(emoticon, text):
-                if replace_emojis:
-                    # Replace with labels (eg ":-)" > "[#joy#]")
+                if replace_emojis and addit_mode:
+                    # Replace with emoticon + label (eg ":-)" > "[#:-)#] joy")
+                    replace_by = '[#{}#] {}'.format(emoticon_to_label[emoticon][1:-1], emoticon)
+                elif replace_emojis:
+                    # Replace emoticon by label
                     replace_by = '[#{}#]'.format(emoticon_to_label[emoticon][1:-1])
                 else:
+                    # Just format emoticon
                     replace_by = '[#{}#]'.format(emoticon)
                 text = re.sub(emoticon, replace_by, text)
 
@@ -89,7 +94,7 @@ class Tokenizer():
                     if char in self.punct:
                         # add preceding charachters to results, if any
                         if new_token:
-                            result += self.add_new_token(new_token, replace_num, stem)
+                            result += self.add_new_token(new_token, replace_num, stem, addit_mode)
                             new_token = ''
                         # Add symbol to result, except # and @
                         if char == '#' or char == '@':
@@ -100,37 +105,43 @@ class Tokenizer():
                     elif char in emoji_to_label.keys():
                         # add preceding charachters to results, if any
                         if new_token:
-                            result += self.add_new_token(new_token, replace_num, stem)
+                            result += self.add_new_token(new_token, replace_num, stem, addit_mode)
                             new_token = ''
                         # add emoji to results
-                        result.append((char, 'emoji'))
                         if replace_emojis:
                             emoji_text = emoji_to_label[char] # ignore columns
                             result.append((emoji_text[1:-1], 'emoji'))
+                            if addit_mode:
+                                result.append((char, 'emoji'))
+                        else:
+                            result.append((char, 'emoji'))
                     # Character is uncommon emoji
                     elif char in emoji.UNICODE_EMOJI.keys():
                         # add preceding charachters to results, if any
                         if new_token:
-                            result += self.add_new_token(new_token, replace_num, stem)
+                            result += self.add_new_token(new_token, replace_num, stem, addit_mode)
                             new_token = ''
                         # add emoji
-                        result.append((char, 'emoji'))
                         if replace_emojis:
                             emoji_text = emoji.demojize(char) # ignore columns
                             result.append((emoji_text[1:-1], 'emoji'))
+                            if addit_mode:
+                                result.append((char, 'emoji'))
+                        else:
+                            result.append((char, 'emoji'))
                     # Character is alpha-numerical
                     else:
                         new_token += char
                 # final check after loop
                 if new_token:
-                    result += self.add_new_token(new_token, replace_num, stem)
+                    result += self.add_new_token(new_token, replace_num, stem, addit_mode)
         # Remove stopwords
         if remove_stopw:
             result = self.remove_stopwords(result)
         return result
 
 
-    def add_new_token(self, token, replace_num, stem):
+    def add_new_token(self, token, replace_num, stem, addit):
         """
         Returns a list with 1 or 2 elements: tuple with the new token and the
         label of the token (type of token). If the arguments replace_num or stem
@@ -142,15 +153,21 @@ class Tokenizer():
         elif token[0] == '@':
             new_tokens.append((token, 'username'))
         elif token.isalpha():
-            new_tokens.append((token, 'word
             if stem:
                 stemmed_token = self.stemmer.stem(token)
                 if stemmed_token and stemmed_token != token:
                     new_tokens.append((stemmed_token, 'word'))
+                    if addit:
+                        new_tokens.append((token, 'word'))
+                else:
+                    new_tokens.append((token, 'word'))
         elif token.isnumeric():
-            new_tokens.append((token, 'numeric'))
             if replace_num:
                 new_tokens.append(('<NUM>', 'numeric'))
+                if addit:
+                    new_tokens.append((token, 'numeric'))
+            else:
+                new_tokens.append((token, 'numeric'))
         else:
             new_tokens.append((token, 'other'))  # Shouldn't happen, but to be save
         return new_tokens
@@ -216,7 +233,8 @@ if __name__ == '__main__':
                 replace_emojis=True,
                 replace_num=True,
                 remove_stopw=False,
-                remove_punct=False)
+                remove_punct=False,
+                addit_mode=False)
 
     print('Original input: {}\n'.format(choice))
     print('Tuples tokens ({}):\n{}\n'.format(len(tokens), tokens))
