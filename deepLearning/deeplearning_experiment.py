@@ -1,8 +1,11 @@
 import os
+import sys
+
+sys.path.append('../')
+
 from corpus import Corpus
 from model import Model
 from evaluator.scorer import Scorer
-#from evaluator.result import Result
 
 # maximum sequence length
 max_len = 60
@@ -84,7 +87,6 @@ def train_architecture_experiment(working_dir, experiment_dir, word_embeddings, 
     train_params = {'num_epochs' : 15, 'min_count' : 1}
 
     # create output directory
-    print(working_dir + experiment_dir + word_embeddings)
     directory = os.path.dirname(working_dir + experiment_dir + architecture + '/')
     if not os.path.exists(directory):
         os.makedirs(directory)
@@ -134,7 +136,7 @@ def main():
     # absolute path
     working_dir = '/run/media/martin/Elements/Marina/TeamLab/'
     # relative to working_dir
-    experiment_dir = 'experiments/word_embedding_experiment/use_full_training_data/'
+    experiment_dir = 'experiments/architecture_experiment/'
     # directory of train, dev and test data, relative to working dir
     data_dir = 'data/'
     # filename of word_embeddings
@@ -159,8 +161,8 @@ def main():
     test_l = data_dir + test_labels
 
     # train_word_embedding_experiment(working_dir, experiment_dir, word_embeddings, architecture, train_f, dev_f, dev_l, test_f, test_l)
-    # train_architecture_experiment(working_dir, experiment_dir, word_embeddings, architecture, train_f, dev_f, dev_l, test_f, test_l)
-    eval_word_embedding_experiment(working_dir, experiment_dir, word_embeddings, best_weights, test_f, test_l)
+    train_architecture_experiment(working_dir, experiment_dir, word_embeddings, architecture, train_f, dev_f, dev_l, test_f, test_l)
+    # eval_word_embedding_experiment(working_dir, experiment_dir, word_embeddings, best_weights, test_f, test_l)
     # eval_architecture_experiment(working_dir, experiment_dir, architecture, best_weights, test_f, test_l)
 
 if __name__ == "__main__":

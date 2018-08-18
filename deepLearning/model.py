@@ -7,8 +7,11 @@ from keras.models import load_model, model_from_json
 from keras.callbacks import ModelCheckpoint, EarlyStopping
 from keras.preprocessing.sequence import pad_sequences
 
-from utils.WordVecs import *
+import sys
 
+sys.path.append('../')
+
+from utils.WordVecs import *
 from architectures import LSTM_Model , BiLSTM_Model, CNN_Model
 from corpus import Corpus
 from tokenizer import Tokenizer
@@ -87,7 +90,7 @@ class Model(object):
         # create wordvecs and W
         print('Loading embeddings...')
         # filter embedding file with vocab
-        vecs = WordVecs(embedding_file, file_type)
+        vecs = WordVecs(embedding_file, file_type, vocab)
         print('finished loading')
         print('Creating wordvecs, W and w2idx map...')
         embeddings, W, word_idx_map = self.__get_word_embeddings(vecs, vocab, min_count)
@@ -137,7 +140,6 @@ class Model(object):
         pickle.dump(max_len, open(save_dir + "max_sequence_len.p", "wb"))
         pickle.dump(word_idx_map, open(save_dir + "word_idx_map.p", "wb"))
         pickle.dump(classes, open(save_dir + "classes.p", "wb" ))
-        K.clear_session()
 
     def get_word_attention(self, save_dir, path_weights, test_corpus):
         inv_classes = {v: k for k, v in classes.items()}
@@ -228,7 +230,7 @@ class Model(object):
         i = 0
         with open(save_dir + 'predictions.csv', 'w') as out:
             out.write("true_label\tpredicted_label\ttweet\n")
-            for label, prediction in itertools.zip(true_labels, predictions):
+            for label, prediction in zip(true_labels, predictions):
                 pred_label = inv_classes[prediction]
                 true_label = inv_classes[label]
                 text = test_corpus.get_ith(i).get_text()

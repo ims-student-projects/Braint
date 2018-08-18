@@ -42,7 +42,7 @@ class WordVecs(object):
         the vocabulary length and vector dimension."""
 
         if self.file_type == 'word2vec':
-            txt = open(file).readlines()
+            txt = open(file, encoding="latin-1").readlines()
             vocab_length, vec_dim = [int(i) for i in txt[0].split()]
             txt = txt[1:]
         elif self.file_type == 'bin':

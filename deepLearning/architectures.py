@@ -4,6 +4,11 @@ Models are partially based on code provided by Jeremy Barnes (https://github.com
 
 from keras.models import Sequential, Model
 from keras.layers import LSTM, Dropout, Dense, Embedding, Bidirectional, Conv1D, MaxPooling1D, Flatten, Input, SpatialDropout1D, Concatenate
+
+import sys
+
+sys.path.append('../')
+
 from utils.attention import Attention
 
 class LSTM_Model(object):

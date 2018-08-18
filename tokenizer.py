@@ -33,6 +33,8 @@ class Tokenizer():
         self.stopwords = stopwords.words('english')
         self.stemmer = SnowballStemmer('english')
 
+    def get_only_tokens(self, text):
+        return [token for token, tag in self.get_tokens(text, False, False, False, False, False, False, False)]
 
     def get_tokens(self, text,
             lowercase = False,
