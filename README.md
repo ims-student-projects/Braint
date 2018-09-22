@@ -53,7 +53,8 @@ The six emotions are more or less evenly distributed in the train data.
 # References
 
 * Vachagan Gratian, Marina Haid. 2018 [BrainT at IEST 2018: Fine-tuning Multiclass Perceptron For Implicit
-Emotion Classification](http://185.203.116.239/publ/braint/braint_at_iest_2018.pdf) (Our paper submitted to EMNLP 2018, describes mcPerceptron)
-* [Our report for the Teamlab course describing both models](http://185.203.116.239/publ/braint/braint_final_report.pdf)
+Emotion Classification](http://185.203.116.239/publ/braint/braint_at_iest_2018.pdf) (our paper submitted to EMNLP 2018, describes mcPerceptron)
+* Vachagan Gratian, Marina Haid, Kiflom Desta Abrha. 2018. [Implicit Emotion Classification:
+Complex Models vs. Complex Features](http://185.203.116.239/publ/braint/braint_final_report.pdf) (our report for the Teamlab course describing both models)
 * Roman Klinger, Orphée de Clerq, Saif M Mohammad,
 and Alexandra Balahur. 2018. [IEST: WASSA-2018 Implicit Emotions Shared Task](http://implicitemotions.wassa2018.com/paper/iest-description-2018.pdf)
