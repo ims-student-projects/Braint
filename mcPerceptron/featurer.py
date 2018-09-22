@@ -1,8 +1,13 @@
+import sys
+from math import log10
+from nltk import pos_tag
+
+sys.path.append('../')
+
 from tokenizer import Tokenizer
 from corpus import Corpus
 from utils.progress_bar import print_progressbar
-from math import log10
-from  nltk import pos_tag
+
 
 class Featurer():
     """
@@ -18,7 +23,7 @@ class Featurer():
 
     :Paramteres:
         - corpus -- an instance of class Corpus
-        - token_params -- parameters that will be sent to Tokenizer, dict
+        - token_options -- parameters that will be sent to Tokenizer, dict
         - grams -- number of grams to extract: 1 or 2 or both, tuple of ints
         - type -- feature type, str, select one from:
             -- binary
@@ -35,43 +40,44 @@ class Featurer():
     :Usage:
         f = Featurer(corpus, PARAMETERS)
     :Example usage:
-        f = Featurer(train_corpus, token_params=None, grams=(1,2), type='frequency')
+        f = Featurer(train_corpus, token_options=None, grams=(1,2), type='frequency')
 
     """
 
-    def __init__(self, \
-                corp=None, \
-                token_params=None, \
-                grams=(1,), \
-                type='frequency',
-                pos=False):
+    def __init__(self, corpus:Corpus, parameters:dict, token_options:dict):
+
+        """
+        corp=None, \
+        token_options=None, \
+        grams=(1,), \
+        type='frequency',
+        pos=False):
+        """
 
         """
         Greacefully exit if arguments are invalid
         """
-        invalid_arguments = []
-        if not corp or not isinstance(corp, Corpus):
-            invalid_arguments.append('corp ({})'.format(corp))
+        # TODO update and cleanup validations, or delete
+        #invalid_arguments = []
+        #if not corp or not isinstance(corp, Corpus):
+        #    invalid_arguments.append('corp ({})'.format(corp))
         #for g in grams:
         #    if g not in (1,2,3,4):
         #        invalid_arguments.append('grams ({})'.format(grams))
-        if type not in ('binary', 'count', 'frequency', 'tf_idf'):
-            invalid_arguments.append('type ({})'.format(type))
-        if invalid_arguments:
-            raise ValueError('\nInvalid argument(s): {}\n{}'
-                .format(','.join(invalid_arguments), self.__doc__))
+        #if type not in ('binary', 'count', 'frequency', 'tf_idf'):
+        #    invalid_arguments.append('type ({})'.format(type))
+        #if invalid_arguments:
+        #    raise ValueError('\nInvalid argument(s): {}\n{}'
+        #        .format(','.join(invalid_arguments), self.__doc__))
 
-
-        self.corpus = corp
-        self.corpus_size = corp.length()
-        self.token_params = token_params
-        self.count_unigrams = True if 1 in grams else False
-        self.count_bigrams = True if 2 in grams else False
-        self.count_trigrams = True if 3 in grams else False
-        self.count_tetragrams = True if 4 in grams else False
-        self.type = type
-        self.count_pos = pos
+        self.corpus = corpus
+        self.corpus_size = corpus.length()
+        self.token_options = token_options
+        self.score = parameters['score']
+        self.ngrams = parameters['ngrams']
+        self.count_pos = parameters['count pos']
         self.feature_labels = {'<BIAS>'}
+        self.print_progressbar = parameters['print progressbar']
         self.extract()
 
 
@@ -86,72 +92,61 @@ class Featurer():
         If no or invalid type is given as parameter, print a soft warning.
         """
 
-        # Prepare parameters for feature extraction (only for convenience)
-        (u,b,t,tt) = (  self.count_unigrams,
-                        self.count_bigrams,
-                        self.count_trigrams,
-                        self.count_tetragrams)
-        bin = True if self.type == 'binary' else False
-        count = True if self.type == 'count' else False
-        freq = True if self.type == 'frequency' else False
-        tf_idf = True if self.type == 'tf_idf' else False
-
-        # Optionally calculate IDF scores
-        if self.type == 'tf_idf':
-            self.calculate_idf_scores(u,b,t) # TODO: add tt here?
+        # Calculate inverted document frequency if we want tf-idf scores
+        if self.score == 'tf_idf':
+            self.calculate_idf_scores() # TODO: add tt here?
 
         # Main job: extract features and print progressbar
-        count = 0
-        print_progressbar(count, self.corpus_size)
+        if self.print_progressbar:
+            progress = 1
+            print_progressbar(progress, self.corpus_size)
         for tweet in self.corpus:
-            features = self.extract_features(tweet,u,b,t,tt,bin,count,freq,tf_idf)
+            features = self.extract_features(tweet)
             tweet.set_features(features)
-            count += 1
-            print_progressbar(count, self.corpus_size)
+            if self.print_progressbar:
+                print_progressbar(progress, self.corpus_size)
+                progress += 1
 
         # Add feature labels to corpus
         self.corpus.set_all_feature_names(self.feature_labels)
 
 
-    def extract_features(self, \
-                        tweet, \
-                        count_unigrams, \
-                        count_bigrams, \
-                        count_trigrams, \
-                        count_tetragrams, \
-                        binary, \
-                        count, \
-                        frequency, \
-                        tf_idf ):
+    def extract_features(self, tweet):
 
         features = {}
-        tokens = Tokenizer().get_tokens(tweet.get_text(), **self.token_params)
+        tokens = Tokenizer().get_tokens(tweet.get_text(), **self.token_options)
 
-        if count_unigrams:
+        # Extract unigrams
+        if 1 in self.ngrams:
             for token in tokens:
                 unigram = token[0]
-                features[unigram] = 1 if binary else features.get(unigram,0)+1
+                features[unigram] = 1 if self.score=='binary' else features.get(unigram,0)+1
                 self.feature_labels.add(unigram)
 
-        if count_bigrams or count_trigrams or count_tetragrams:
+        # If we need to extract multi-grams
+        if any([True if ngram in (2,3,4) else False for ngram in self.ngrams]):
             # Get "strict" tokens, i.e. without replacing anything
-            tp = self.token_params.copy()
+            tp = self.token_options.copy()
             tp['stem'] = False
             tp['replace_emojis'] = False
             tp['replace_num'] = False
             tp['addit_mode'] = False
             strict_tokens = Tokenizer().get_tokens(tweet.get_text(), **tp)
 
-            if count_bigrams:
-                bigrams = self.get_bigrams(strict_tokens, binary)
+            # Extract bigrams
+            if 2 in self.ngrams:
+                bigrams = self.get_bigrams(strict_tokens)
                 features.update(bigrams)
-            if count_trigrams:
-                trigrams = self.get_trigrams(strict_tokens, binary)
+            # Extract trigrams
+            if 3 in self.ngrams:
+                trigrams = self.get_trigrams(strict_tokens)
                 features.update(trigrams)
-            if count_tetragrams:
-                tetragrams = self.get_tetragrams(strict_tokens, binary)
+            # Extract skip-one-tetragrams
+            if 4 in self.ngrams:
+                tetragrams = self.get_tetragrams(strict_tokens)
                 features.update(tetragrams)
 
+        # Extract POS
         if self.count_pos:
             plain_tokens = [t[0] for t in tokens]
             tokens_with_pos = pos_tag(plain_tokens)
@@ -160,20 +155,24 @@ class Featurer():
                 features[tag] = 1 if binary else features.get(tag,0)+1
                 self.feature_labels.add(tag)
 
-        if frequency or tf_idf:
+        # Get frequency from counts
+        if self.score == 'frequency' or self.score == 'tf_idf':
             for f in features:
                 features[f] /= len(tokens)
 
-        if tf_idf:
+        # Get tf-idf from counts
+        if self.score == 'tf_idf':
             for f in features:
                 if self.feature_idf_scores[f]:
                     features[f] *= self.feature_idf_scores[f]
 
         features['<BIAS>'] = 1
+
         return features
 
 
-    def get_bigrams(self, tokens, binary):
+    def get_bigrams(self, tokens):
+        binary = True if self.score == 'binary' else False
         bigrams = {}
         prev = '<BEGIN>'  # Previous token
         for token in tokens:
@@ -187,7 +186,8 @@ class Featurer():
         return bigrams
 
 
-    def get_trigrams(self, tokens, binary):
+    def get_trigrams(self, tokens):
+        binary = True if self.score == 'binary' else False
         trigrams = {}
         prev = '<BEGIN>'
         prev_prev = None
@@ -204,10 +204,11 @@ class Featurer():
         return trigrams
 
 
-    def get_tetragrams(self, tokens, binary):
+    def get_tetragrams(self, tokens):
         """
         Tetragrams with skip points!
         """
+        binary = True if self.score == 'binary' else False
         tetragrams = []  # Simple tetragrams, list of lists
         skip_tetr = {} # Tetragrams with skip
         prev = None
@@ -235,7 +236,7 @@ class Featurer():
         return skip_tetr
 
 
-    def calculate_idf_scores(self, count_unigrams, count_bigrams, count_trigrams):
+    def calculate_idf_scores(self):
         """
         Extracts terms from corpus and adds them to self.__term_idfs. Calculates
         df score (=document frequency, i.e. number of tweets in which the term
@@ -250,19 +251,19 @@ class Featurer():
         # Count document frequencyt of each feature
         for tweet in self.corpus:
             features = set()
-            if count_unigrams:
-                terms = Tokenizer().get_terms(tweet.get_text(), **self.token_params)
+            if 1 in self.ngrams:
+                terms = Tokenizer().get_terms(tweet.get_text(), **self.token_options)
                 for term in terms:
                     features.add(term[0])
-            if count_bigrams:
-                tokens = Tokenizer().get_tokens(tweet.get_text(), **self.token_params)
+            if 2 in self.ngrams:
+                tokens = Tokenizer().get_tokens(tweet.get_text(), **self.token_options)
                 previous_token = '<BEGIN>'
                 for token in tokens:
                     bigram = previous_token + ' ' + token[0]
                     previous_token = token[0]
                     features.add(bigram)
-            if count_trigrams:
-                tokens = Tokenizer().get_tokens(tweet.get_text(), **self.token_params)
+            if 3 in self.ngrams:
+                tokens = Tokenizer().get_tokens(tweet.get_text(), **self.token_options)
                 previous_token = '<BEGIN>'
                 previous_previous = None
                 for token in tokens:
@@ -271,6 +272,7 @@ class Featurer():
                         features.add(trigram)
                     previous_previous = previous_token
                     previous_token = token[0]
+            # TODO: Add tetragrams?
 
             for f in features:
                 self.feature_idf_scores[f] = self.feature_idf_scores.get(f,0)+1
