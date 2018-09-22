@@ -74,11 +74,10 @@ class MulticlassPerceptron(object):
         result = Result()
         self.train(epochs, train_corpus, test_corpus, fn_weights, fn_scores, result)
         result.draw_graph(token_params, type)
-        """
-        with open('final_results/tt2_50e_predictions.txt', 'w') as outf:
+
+        with open('1g_predictions', 'w') as outf:
             for tweet in test_corpus:
                 outf.write(tweet.get_pred_label() + "\n")
-        """
 
     def train(self, num_iterations, train_corpus, test_corpus=None, \
             fn_weights=None, fn_scores=None, result=None):

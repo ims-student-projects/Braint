@@ -52,9 +52,9 @@ class Featurer():
         invalid_arguments = []
         if not corp or not isinstance(corp, Corpus):
             invalid_arguments.append('corp ({})'.format(corp))
-        for g in grams:
-            if g not in (1,2,3,4):
-                invalid_arguments.append('grams ({})'.format(grams))
+        #for g in grams:
+        #    if g not in (1,2,3,4):
+        #        invalid_arguments.append('grams ({})'.format(grams))
         if type not in ('binary', 'count', 'frequency', 'tf_idf'):
             invalid_arguments.append('type ({})'.format(type))
         if invalid_arguments:
@@ -125,9 +125,9 @@ class Featurer():
                         tf_idf ):
 
         features = {}
+        tokens = Tokenizer().get_tokens(tweet.get_text(), **self.token_params)
 
         if count_unigrams:
-            tokens = Tokenizer().get_tokens(tweet.get_text(), **self.token_params)
             for token in tokens:
                 unigram = token[0]
                 features[unigram] = 1 if binary else features.get(unigram,0)+1
@@ -139,6 +139,7 @@ class Featurer():
             tp['stem'] = False
             tp['replace_emojis'] = False
             tp['replace_num'] = False
+            tp['addit_mode'] = False
             strict_tokens = Tokenizer().get_tokens(tweet.get_text(), **tp)
 
             if count_bigrams:

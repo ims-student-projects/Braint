@@ -15,25 +15,24 @@ E.g: run `rm experiment_*` in your terminal
 def main():
     begin = time()
     classes = ['joy', 'anger', 'fear', 'surprise', 'disgust', 'sad']
-    train_data = 'data/train_v3'
-    test_data = 'data/test_v3'
-    #train_data = 'data/s_train'
-    #test_data = 'data/s_test'
+    train_data = 'data/train-v3.csv'
+    test_data = 'data/test-text-labels.csv'
 
     # Tokenizer parameters
     token_params = { 'lowercase':False,
-                    'stem':True,
-                    'replace_emojis':True,
-                    'replace_num':True,
+                    'stem':False,
+                    'replace_emojis':False,
+                    'replace_num':False,
                     'remove_stopw':False,
-                    'remove_punct':False }
+                    'remove_punct':False,
+                    'addit_mode':True }
 
     # Perceptron parameters
-    epochs = 30
+    epochs = 35
     learning_rate = 0.3
 
     # Feature parameters
-    grams = (1,2,3) # 1=unigram, 2=bigram -- for single value, add , eg. (1,)
+    grams = (1,) # 1=unigram, 2=bigram -- for single value, add , eg. (1,)
     type = 'frequency' # choose between binary, count, frequency
     pos = True
 
@@ -47,18 +46,16 @@ def main():
 
     # Initialize feature extractors
     print('Extracting features for TRAIN data:')
-    features_train = Featurer(train_corpus, token_params, grams, type)
+    features_train = Featurer(train_corpus, token_params, grams, type, pos)
     print('Extracting features for TEST data:')
-    features_test = Featurer(test_corpus, token_params, grams, type)
+    features_test = Featurer(test_corpus, token_params, grams, type, pos)
 
     # Print info
     print('Tokenizing tweets completed (with parameters: {})\n'.format
             (', '.join([p for p in token_params if token_params[p]])))
     print('Extracting features {} completed (grams: {}).\n'.format(type.upper(),grams))
 
-    # Filenames used to save data
-    #fn_weights = 'results/experiment_grams{}_{}_weights'.format(grams, type)
-    #fn_scores = 'results/experiment_grams{}_{}_scores'.format(grams, type)
+    # Filenames if we want to save model and scores
     fn_weights = fn_scores = None
 
     # Create and train the model
