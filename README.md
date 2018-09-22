@@ -1,147 +1,59 @@
-# Braint: Twitter Emotion classifier
+# _BrainT_ : two models for Implicit Emotion Detection
 
-## Introduction
+# Introduction
 
-In this project we built and tested two different classifiers that predict
-emotions of tweets. The two models presented here are a multiclass Perceptron
-(built from scratch) and LSTM (built based on libraries). Both of the models
-achieved an almost identical F-macro (0.62) on the final test data, while the
-initial score of the Perceptron was 0.33. For comparison: native speakers of
-English were able to predict emotions of these tweets with an F-macro of 0.45
-(Klinger et al, 2018, p. 7).
+This repository contains two models that we built in the context of [WASSA-2018 Implicit Emotion Shared Task](http://implicitemotions.wassa2018.com/) and the course Teamlab at the University of Stuttgart.
 
-The final results were submitted to the [WASSA-2018 Implicit Emotion Shared Task](http://implicitemotions.wassa2018.com/) (IEST). Among 30 participants _Braint_
-was ranked 17th. In this paper we present a comparison of both models, as well
-as an evaluation of the individual performance and hindsights how this might
-be improved in the future.
+Here we only give a general overview of the task, the data set and the results. For the documentation of each models, please navigate to the corresponding subfolder:
+
+* [mcPerceptron](mcPerceptron) (averaged multiclass perceptron)
+* [deepLearning](deepLearning) (bi-directional LSTM with attention)
+
+Our two models showed comparable results: F-Macro 0.63 and 0.64 for the multi-class Perceptron and the Deep Learning model respectively. We submitted the predictions of mcPerceptron model to IESA since at the time it performed (slightly) better than the DL model. Our [paper](http://185.203.116.239/publ/braint/braint_at_iest_2018.pdf) describing this model was accepted for the EMNLP 2018 conference.
 
 
-### Why emotion classification?
+# Task Description
 
-The exact definition of _emotion_ and its relation to language is a debated topic
-in the literature of psychology, neuroscience and philosophy. We define
-emotionality as the subjective aspect of communication, as opposed to an
-objective, i.e. purely logical and informative discourse which should ideally be
-dispassionate (although never completely emotion-less).
+Our task was to predict emotions in a large dataset of tweets annotated with distant supervision. The predicted emotion should have been `anger​`, `disgust`, `fear`, `joy`, `sadness` or `surprise​`. This was an _implicit_ emotion detection task, since the words actually expressing these six emotions (or synonyms) were masked in the train data.
 
-Computational aspects of emotion are a pivotal problem of A.I. if we consider
-emotions as different modes of communication. For example, a dialogue system
-will recognize the utterance _"it's raining"_ as purely informative, whereas
-_"It's raining. What a great day!"_ should most be treated as a sign that the
-speaker perhaps hates rainy days, or even more as a sign that they suffer from
-chronic depression.
+An example of original tweet:
 
+<div class="center">
+<blockquote class="twitter-tweet" data-partner="tweetdeck"><p lang="en" dir="ltr">
+I spent 24 hours with my boyfriend yet I was still sad when he dropped me off
+</p>
+&mdash; вяeadney|-/ (@katzlover64) <a href="https://twitter.com/katzlover64/status/894446290448285696">8:33 AM - 7 Aug 2017</a></blockquote>
+</div>
 
-### Task Description
-
-
-
-
-
-### Structure and Explanation
-__Tokenizer__ a class to tokenize the Tweet texts. Currently the tweet text is split at whitespace characters and punctuation is treated as separate token.
-Two functions are implemented:
-
-- __get_tokens(text:str)__: returns a list of every token of the text
-- __get_terms(text:str)__: returns a list of types
-
-__Featurer__ a class to extract features from Tweet texts. Currently implemented is the tf-idf feature.
-
-- This class is initialized with the Corpus from which features should be extracted.
-- __set\_features()__: sets extracts the features from the Tweets and stores the features as a dictionary (key:feature\_name; value:tf-idf) in the Tweet object
-- a list all feature labels is sent to Corpus using the method __set_all_feature_names()__ of the latter (this list is used by the perceptron to initiate weights)
-
-__MultiClassPerceptron__ a class to train and test a classifier.
-
-- This class is initialized with a list of all possible classes as well as a list of all feature names occurring in the training data.
-- __train(num\_iterations, train\_corpus)__: num\_iterations determines the number of passes through the training data; for each Tweet in the train\_corpus the class of the Tweet is predicted using its feature and if necessary the weight are adjusted
-- __test(test\_corpus)__: for each Tweet in the test\_corpus the class of the Tweet is predicted and the predicted label is stored in the Tweet object
-
-## Classifier Experiment
-
-### Data
-
-For the most of the training we used the data provided by the [shared task](http://implicitemotions.wassa2018.com/data/ ) (we didn't yet have access to the main train data):
-
-	- Training data: train.csv
-	- Test data: trial.csv and trial.labels
-
-For the experiment with the learning rate and 100 iterations (see under [Discussion](#discussion)) we used the main `train.csv` file with 153,600 labeled tweets. We split this file into __80% train__ data and __20% test__ data using the following commands:
+The tweet in the dataset:
 
 ```
-head -n 30720 train.csv > test
-tail -n +30721 train.csv > train
+I spent 24 hours with my boyfriend yet I was still [#TRIGGERWORD#] when he dropped me off
 ```
-All of these files should be located in the subfolder `data`.
 
-#### Class distribution in train data
-The six emotions are more or less evenly distributed in the train data (this
-	statistics is printed by the Corpus class):
+
+## Datasets
+
+The train and test datasets were provided by the [shared task](http://implicitemotions.wassa2018.com/data/ ) and contain
+
+- `train-v3.csv` : 153,383
+- `test-text-labels.csv` : 28,757
+
+tweets. Both our models expect that these datasets  are located in the subfolder `data`.
+
+## Class distribution in train data
+The six emotions are more or less evenly distributed in the train data.
 
 
 | surprise | anger	| disgust	| sad	| fear	| joy	| total |
 |----------|--------|---------|-----|-------|-----|-------|
-| 16.7% (20516)	| 16.7% (20506)	| 16.6% (20403)	| 16.8% (20593)	| 16.6% (20392)	| 16.7% (20470)	| 100.0% (122880) |
+| 16.7% (25,565)	| 16.7% (25,562)	| 16.7% (25,558)	| 15.1% (23,165)	| 16.7% (25,575)	| 18.2% (27,958)	| 100.0% (153,383) |
 
 
-### Features
+# References
 
-- A vector representation of tf-idf score for all terms in the collection.
-
-### Results
-
-#### Overview (only Fscores)
-
-| Number of train iterations | Macro Fscore on test set | Micro Fscore on test set |
-|----------------------------|--------------------------|--------------------------|
-| 1 iteration                | 0.422                    | 0.433                    |
-| 5 iterations               | 0.328                    | 0.389                    |
-| 10 iterations              | 0.411                    | 0.425                    |
-| 100 iterations*						 | 0.400										| 0.399										 |
-
-\*Note that here we used the main train data and an adaptive learning rate (see explanation under [Data](#data) and [Discussion](#discussion)).
-
-#### Detail (including Precision and Recall for each class)
-
-- 1 iteration:
-
-	```
-	Fmac	Fmic	supP	supR	disP	disR	feaP	feaR	sadP	sadR	joyP	joyR	angP	angR
-	0.422   0.433	0.46	0.35	0.47	0.54	0.39	0.59	0.38	0.56	0.68	0.22	0.43	0.33
-	```
-
-- 5 iterations:
-
-	```
-	Fmac	Fmic	supP	supR	disP	disR	feaP	feaR	sadP	sadR	joyP	joyR	angP	angR
-	0.382   0.389	0.26	0.83	0.57	0.37	0.64	0.28	0.53	0.27	0.68	0.19	0.4	0.4
-	```
-
-- 10 iterations:
-
-	```
-	Fmac	Fmic	supP	supR	disP	disR	feaP	feaR	sadP	sadR	joyP	joyR	angP	angR
-	0.411   0.425	0.34	0.62	0.37	0.66	0.6	0.31	0.51	0.26	0.5	 0.49	0.54	0.21
-	```
-
-- 100 iterations:
-
-	```
-	Fmac	Fmic	supP	supR	disP	disR	feaP	feaR	sadP	sadR	joyP	joyR	angP	angR
-	0.4     0.399	0.35	0.4	0.48	0.42	0.44	0.43	0.36	0.32	0.47 	0.4	0.33	0.41
-	```
-
-
-#### Convergence
-
-Convergence of the model with 100 iterations. A adaptive learning rate (`0 < n ≤ 1`) was applied in this case, i.e. starting with `1.0`, the learning rate was decreased by `0.01` after each iteration.
-
-By convergence we mean here how well the model was predicting during `training phase`. 80% convergence, for example, means that 80% of the tweets during the last iteration were predicted correctly. This does not reflect how well the model will predict the test (unseen) data!
-
-![convergence chart](data/convergence_chart.png)
-
-#### Discussion
-
-We trained and tested the model several times with different number of iterations. During the 100 iterations experiment we used a learning rate that decreases during training (see description under [Convergence](#convergence)). In this scenario the model converged `81.09%` after the last iteration of training. To compare, with a static learning rate of `1.0` and with only `1` iteration the model converged `36.56%`. However with a higher convergence the model did not perform better on the test data, we even got a slightly worse f-measure (`Fmac: 0.4, Fmic:	0.399`).
-
-Our conclusion from this observation is that our feature set does not allow a better prediction rate. We think that we should filter out certain words (eg. stopwords) and extract additional features (eg. number of capitalized words, biwords, etc..).
+* Vachagan Gratian, Marina Haid. 2018 [BrainT at IEST 2018: Fine-tuning Multiclass Perceptron For Implicit
+Emotion Classification](http://185.203.116.239/publ/braint/braint_at_iest_2018.pdf) (Our paper submitted to EMNLP 2018, describes mcPerceptron)
+* [Our report for the Teamlab course describing both models](http://185.203.116.239/publ/braint/braint_final_report.pdf)
+* Roman Klinger, Orphée de Clerq, Saif M Mohammad,
+and Alexandra Balahur. 2018. [IEST: WASSA-2018 Implicit Emotions Shared Task](http://implicitemotions.wassa2018.com/paper/iest-description-2018.pdf)
