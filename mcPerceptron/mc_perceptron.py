@@ -4,7 +4,7 @@ from evaluator.result import Result
 from evaluator.scorer import Scorer
 import json
 
-class MulticlassPerceptron(object):
+class mcPerceptron(object):
     """
     A perceptron for multiclass classification.
 
@@ -13,8 +13,10 @@ class MulticlassPerceptron(object):
             feature_names: a list containing all names of the features that are used.
     """
 
-    def __init__(self, classes, feature_names, lr=0.1):
-        self.lr = lr  # Learning rate
+    def __init__(self, classes:list, feature_names:set, parameters:dict, token_options:dict):
+        self.parameters = parameters
+        self.token_options = token_options
+        self.lr = parameters['learning rate']
         self.classes = classes  # Names of emotions
         # Initialize weights as dict of dicts: ("class" --> ("feature" --> weight))
         self.weights = {c:{f:0 for f in feature_names} for c in classes}
@@ -69,18 +71,22 @@ class MulticlassPerceptron(object):
         return activations[0]
 
 
-    def train_and_test(self, epochs, train_corpus, test_corpus, fn_weights=None,\
-                        fn_scores=None, token_params=None, type=None):
-        result = Result()
-        self.train(epochs, train_corpus, test_corpus, fn_weights, fn_scores, result)
-        result.draw_graph(token_params, type)
+    def train_and_test(self, train_corpus, test_corpus):
 
-        with open('1g_predictions', 'w') as outf:
-            for tweet in test_corpus:
-                outf.write(tweet.get_pred_label() + "\n")
+        result = Result() if self.parameters['print results'] else None
 
-    def train(self, num_iterations, train_corpus, test_corpus=None, \
-            fn_weights=None, fn_scores=None, result=None):
+        self.train(train_corpus, test_corpus, result)
+
+        if self.parameters['print plot']:
+            result.draw_graph(self.token_options, type)
+
+        if self.parameters['save test predictions']:
+            with open(self.parameters['save test predictions'], 'w') as f:
+                for tweet in test_corpus:
+                    f.write(tweet.get_pred_label() + "\n")
+
+
+    def train(self, train_corpus, test_corpus=None, result=None):
         """ Function to train the MulticlassPerceptron. Optionally writes weights
             and accuracy into files.
             Args:
@@ -90,10 +96,11 @@ class MulticlassPerceptron(object):
                 fn_acc: file where to write weights for each iteration
                 # TODO
         """
-        self.num_steps = num_iterations * train_corpus.length()
-        self.curr_step = num_iterations * train_corpus.length()
+        epochs = self.parameters['epochs']
+        self.num_steps = epochs * train_corpus.length()
+        self.curr_step = self.num_steps
         acc = 0  # accuracy score
-        for i in range(num_iterations):
+        for i in range(epochs):
             corr = 0  # correct predictions during current iteration
             train_corpus.shuffle()  # shuffle tweets
             for tweet in train_corpus:
@@ -113,14 +120,16 @@ class MulticlassPerceptron(object):
             if test_corpus:
                 self.test(test_corpus, test_mode=True)
                 scores = Scorer(test_corpus)
-                result.show(scores,acc)
 
-                if fn_scores:
-                    result.write(acc, scores, fn_scores)
+                if self.parameters['print results']:
+                    result.show(scores, acc)
+
+                if self.parameters['save results']:
+                    result.write(acc, scores, self.parameters['save results'])
 
         # Write final weights to file
-        if fn_weights:
-            self.save_model(fn_weights)
+        if self.parameters['save model']:
+            self.save_model()
 
 
     def __debug_print_prediction(self, example, prediction):
@@ -159,15 +168,15 @@ class MulticlassPerceptron(object):
         #if weights:
         #    self.load_model(weights)
 
-        for example in test_corpus:
-            tweet_features = example.get_features() # dict
-            prediction = self.__predict(tweet_features, example, test_mode)
+        for tweet in test_corpus:
+            prediction = self.__predict(tweet.get_features(), tweet, test_mode)
 
 
-    def save_model(self, filename):
-        with open(filename + '_averaged', 'a') as w:
+    def save_model(self, filename=None):
+        f = filename if filename else self.parameters['save model']
+        with open(f + '_averaged', 'a') as w:
             w.write(json.dumps(self.averaged_weights) + '\n')
-        with open(filename, 'a') as w:
+        with open(f, 'a') as w:
             w.write(json.dumps(self.weights) + '\n')
 
 
