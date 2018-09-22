@@ -30,15 +30,15 @@ class Result():
         self.epochs = 0
 
 
-    def draw_graph(self, features, params):
+    def draw_graph(self, token_params, feature_type):
         fig, ax = plt.subplots(figsize=(14, 8))
         ax.plot(self.convergence, label='Convergence (accuracy on train data)')
         ax.plot(self.fmac,  label='Macro F-score (test data)')
         ax.legend(loc='best')
         plt.axis([0, self.epochs, 0, 1])
-        tp = ', '.join([str(p) for p in params if params[p]]) if params else None
-        plt.title('Tokenizer params: {}'.format(tp if tp else 'None'))
-        plt.suptitle('Braint. Epochs: {}. Features: {}'.format(self.epochs, ', '.join([f for f in features])), y=.95, fontsize=14)
+        tp = ', '.join([str(p) for p in token_params if token_params[p]]) if token_params else 'None'
+        plt.title('Tokenizer params: {}'.format(tp))
+        plt.suptitle('Braint. Epochs: {}. Feature type: {}'.format(self.epochs, feature_type), y=.95, fontsize=14)
         plt.xlabel('Epochs')
         plt.ylabel('Convergence / F-macro')
         plt.show()

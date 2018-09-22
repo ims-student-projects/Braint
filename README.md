@@ -1,5 +1,42 @@
 # Braint: Twitter Emotion classifier
 
+## Introduction
+
+In this project we built and tested two different classifiers that predict
+emotions of tweets. The two models presented here are a multiclass Perceptron
+(built from scratch) and LSTM (built based on libraries). Both of the models
+achieved an almost identical F-macro (0.62) on the final test data, while the
+initial score of the Perceptron was 0.33. For comparison: native speakers of
+English were able to predict emotions of these tweets with an F-macro of 0.45
+(Klinger et al, 2018, p. 7).
+
+The final results were submitted to the [WASSA-2018 Implicit Emotion Shared Task](http://implicitemotions.wassa2018.com/) (IEST). Among 30 participants _Braint_
+was ranked 17th. In this paper we present a comparison of both models, as well
+as an evaluation of the individual performance and hindsights how this might
+be improved in the future.
+
+
+### Why emotion classification?
+
+The exact definition of _emotion_ and its relation to language is a debated topic
+in the literature of psychology, neuroscience and philosophy. We define
+emotionality as the subjective aspect of communication, as opposed to an
+objective, i.e. purely logical and informative discourse which should ideally be
+dispassionate (although never completely emotion-less).
+
+Computational aspects of emotion are a pivotal problem of A.I. if we consider
+emotions as different modes of communication. For example, a dialogue system
+will recognize the utterance _"it's raining"_ as purely informative, whereas
+_"It's raining. What a great day!"_ should most be treated as a sign that the
+speaker perhaps hates rainy days, or even more as a sign that they suffer from
+chronic depression.
+
+
+### Task Description
+
+
+
+
 
 ### Structure and Explanation
 __Tokenizer__ a class to tokenize the Tweet texts. Currently the tweet text is split at whitespace characters and punctuation is treated as separate token.
