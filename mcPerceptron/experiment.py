@@ -1,10 +1,12 @@
 import sys
 from time import time
+from flask import Flask, session, redirect, url_for, escape, request, render_template
 
 sys.path.append('../')
 
 from corpus import Corpus
 from featurer import Featurer
+from tweet import Tweet
 from mc_perceptron import mcPerceptron
 
 
@@ -25,26 +27,23 @@ class Experiment(object):
                     'test': self.test,
                     'test demo': self.test_demo,
                     }
-        """
-        'train_data': 'data/train-v3.csv',
-        'test_data':'data/test-text-labels.csv',
-        """
         experiment_parameters = {
-                    'train data': '../data/s_train',
-                    'test data':'../data/s_test',
+                    'train data': '../data/train-v3.csv',
+                    'test data':'../data/test-text-labels.csv',
                     'epochs': 35,
                     'learning rate': 0.3,
-                    'ngrams': (1,),
+                    'ngrams': (2,3),
                     'score': 'frequency',
                     'count pos': False,
-                    'load model': None,
-                    'save model': None,
+                    'load model': 'freq_23g_35e',
+                    #'load model': 'dummy_model',
+                    'save model': 'freq_23g_35e',
                     'save test predictions': None,
                     'save results': None,
                     'print results': True,
                     'print plot': True,
                     'print class distribution': False,
-                    'print progressbar': True
+                    'print progressbar': False
                     }
         token_options = {
                     'addit_mode':True,
@@ -88,13 +87,8 @@ class Experiment(object):
 
 
     def train_and_test(self):
-
         begin = time()
-
-        # Print info about parameters
-        print('Starting BrainT with parameters:\n{}'.format('\n'.join([' ' \
-            '{}:\t{}'.format(p,v) for p,v in zip(self.parameters.keys(), \
-            self.parameters.values())])))
+        self.print_intro()
 
         # Initialize corpora
         if self.parameters['print class distribution']:
@@ -112,42 +106,126 @@ class Experiment(object):
             self.token_options.values())])))
 
         # Extract features
-        # TODO adapt argument processing in Featurer
-        print('\nExtracting features for TRAIN data:')
+        print('\nExtracting features from TRAIN data:')
         features_train = Featurer(train_corpus, self.parameters, self.token_options)
-        print('Extracting features for TEST data:')
+        print('Extracting features from TEST data:')
         features_test = Featurer(test_corpus, self.parameters, self.token_options)
 
         print('Training and testing model...\n')
 
-        # TODO adapt argument processing
         model = mcPerceptron(
                     self.classes, \
-                    train_corpus.get_all_feature_names(), \
                     self.parameters, \
-                    self.token_options
+                    self.token_options, \
+                    train_corpus.get_all_feature_names()
                     )
         model.train_and_test(train_corpus, test_corpus)
 
-        print('\nFinalized prediction and evaluation')
+        print('\nFinalized prediction and evaluation.')
 
         if self.parameters['save model']:
             print('Model saved as {}'.format(self.parameters['save model']))
 
         if self.parameters['save test predictions']:
-            print('Predictions saved as {}'.format(self.parameters['save test predictions']))
+            print('Predicted labels saved as {}'.format(self.parameters['save test predictions']))
 
-        print('Total runtime: {} s.'.format(round(time()-begin),3))
+        if self.parameters['save results']:
+            print('Evaluation results saved as {}'.format(self.parameters['save results']))
+
+        print('Total runtime: {} s.'.format(round(time()-begin,3)))
 
 
     def train(self):
-        print('This is your TRAIN method')
+        begin = time()
+        self.print_intro()
+
+        # Initialize corpus
+        if self.parameters['print class distribution']:
+            print('Class distribution in TRAIN data:')
+        train_corpus = Corpus(self.parameters['train data'],self.parameters['print class distribution'])
+
+        print('\nTokenizing tweets with options:\n{}'.format('\n'.join([' ' \
+            '{}:\t{}'.format(o,v) for o,v in zip(self.token_options.keys(), \
+            self.token_options.values())])))
+
+        # Extract features
+        print('\nExtracting features from TRAIN data:')
+        features_train = Featurer(train_corpus, self.parameters, self.token_options)
+
+        print('\nTraining model...\n')
+
+        model = mcPerceptron(
+                    self.classes, \
+                    self.parameters, \
+                    self.token_options, \
+                    train_corpus.get_all_feature_names()
+                    )
+        model.train(train_corpus)
+
+        print('\nTraining model completed.')
+
+        if self.parameters['save model']:
+            print('Model saved as {}'.format(self.parameters['save model']))
+
+        print('Total runtime: {} s.'.format(round(time()-begin,3)))
+
 
     def test(self):
-        print('This is your TEST method')
+        begin = time()
+        self.print_intro()
+
+        if self.parameters['print class distribution']:
+            print('Class distribution in TEST data (predictions):')
+        test_corpus = Corpus(self.parameters['test data'],self.parameters['print class distribution'])
+
+        print('\nTokenizing tweets with options:\n{}'.format('\n'.join([' ' \
+            '{}:\t{}'.format(o,v) for o,v in zip(self.token_options.keys(), \
+            self.token_options.values())])))
+
+        print('\nExtracting features from TEST data:')
+        features_test = Featurer(test_corpus, self.parameters, self.token_options)
+
+        model = mcPerceptron(
+                    self.classes, \
+                    self.parameters, \
+                    self.token_options
+                    )
+        print('\nLoading model from file [{}].\n'.format(self.parameters['load model']))
+        model.test_model(test_corpus)
+
+        print('\nModel evaluation completed.')
+
+        if self.parameters['save test predictions']:
+            print('Predicted labels saved as {}'.format(self.parameters['save test predictions']))
+
+        if self.parameters['save results']:
+            print('Evaluation results saved as {}'.format(self.parameters['save results']))
+
+        print('Total runtime: {} s.'.format(round(time()-begin,3)))
+
 
     def test_demo(self):
-        print('This is your TEST DEMO method')
+        self.model = mcPerceptron(
+                    self.classes, \
+                    self.parameters, \
+                    self.token_options
+                    )
+        self.model.load_model()
+
+
+    def predict(self, text):
+        tweet = Tweet(text)
+        featurer = Featurer(None, self.parameters, self.token_options)
+        features = featurer.extract_features(tweet)
+        emotion = self.model._predict(features, tweet)
+        return emotion[0][0]
+
+
+    def print_intro(self):
+        # Print info about parameters
+        print('Starting BrainT with parameters:\n{}'.format('\n'.join([' ' \
+            '{}:\t{}'.format(p,v) for p,v in zip(self.parameters.keys(), \
+            self.parameters.values())])))
 
 
     def print_braint(self, type, epochs):
@@ -170,4 +248,6 @@ class Experiment(object):
 
 if __name__ == "__main__":
     #exp1 = Experiment('train and test')
-    exp = Experiment('train and test')
+    text = 'i have to be punched in the face by my loneliness before i reach out to someone'
+    exp = Experiment('test demo')
+    #exp.predict(text)

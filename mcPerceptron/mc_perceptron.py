@@ -13,16 +13,17 @@ class mcPerceptron(object):
             feature_names: a list containing all names of the features that are used.
     """
 
-    def __init__(self, classes:list, feature_names:set, parameters:dict, token_options:dict):
+    def __init__(self, classes:list, parameters:dict, token_options:dict, feature_names:set=None):
         self.parameters = parameters
         self.token_options = token_options
         self.lr = parameters['learning rate']
         self.classes = classes  # Names of emotions
-        # Initialize weights as dict of dicts: ("class" --> ("feature" --> weight))
-        self.weights = {c:{f:0 for f in feature_names} for c in classes}
-        self.averaged_weights = {c:{f:0 for f in feature_names} for c in classes}
         self.num_steps = 0  # Used to average weights
         self.curr_step = 0  # Used to average weights
+        # Initialize weights as dict of dicts: ("class" --> ("feature" --> weight))
+        if feature_names:
+            self.weights = {c:{f:0 for f in feature_names} for c in classes}
+            self.averaged_weights = {c:{f:0 for f in feature_names} for c in classes}
 
 
     def __update_weights(self, features, prediction, true_label):
@@ -45,7 +46,8 @@ class mcPerceptron(object):
                 self.weights[prediction][feat] -= z
                 self.averaged_weights[prediction][feat] -= avg_z
 
-    def __predict(self, features, example, test_mode=False):
+
+    def _predict(self, features, example, test_mode=False):
         """ Returns a prediction for the given features. Calculates activation
             for each class and returns the class with the highest activation.
             Args:
@@ -68,17 +70,19 @@ class mcPerceptron(object):
         activations.sort(key=itemgetter(1), reverse=True)
         # set prediction in tweet
         example.set_pred_label(activations[0][0])
-        return activations[0]
+        return activations
 
 
     def train_and_test(self, train_corpus, test_corpus):
 
-        result = Result() if self.parameters['print results'] else None
+        if self.parameters['print results'] or self.parameters['save results'] \
+            or self.parameters['print plot']:
+            result = Result()
 
         self.train(train_corpus, test_corpus, result)
 
         if self.parameters['print plot']:
-            result.draw_graph(self.token_options, type)
+            result.draw_graph(self.token_options, self.parameters['score'])
 
         if self.parameters['save test predictions']:
             with open(self.parameters['save test predictions'], 'w') as f:
@@ -106,8 +110,8 @@ class mcPerceptron(object):
             for tweet in train_corpus:
                 true_label = tweet.get_gold_label()
                 tweet_features = tweet.get_features() # dict
-                prediction = self.__predict(tweet_features, tweet)
-                self.__update_weights(tweet_features, prediction[0], true_label)
+                prediction = self._predict(tweet_features, tweet)[0][0]
+                self.__update_weights(tweet_features, prediction, true_label)
                 self.curr_step -= 1
                 # Count of correct predictions
                 corr += 1 if true_label == prediction[0] else 0
@@ -132,27 +136,21 @@ class mcPerceptron(object):
             self.save_model()
 
 
-    def __debug_print_prediction(self, example, prediction):
-        print("true label: " + example.get_gold_label())
-        print("tweet text: " + example.get_text())
-        print("prediction: " + example.get_pred_label())
-        print(prediction)
+    def test_model(self, test_corpus):
 
+        self.load_model()
+        if self.parameters['print results'] or self.parameters['save results']:
+            result = Result()
 
-    def test_model(self, test_corpus, weights, output=None, evaluate=False):
-
-        self.load_model(weights)
         self.test(test_corpus)
 
-        if output:
-            with open(output, 'w') as outf:
-                for tweet in test_corpus:
-                    outf.write(tweet.get_pred_label() + "\n")
+        scores = Scorer(test_corpus)
 
-        if evaluate:
-            result = Result()
-            scores = Scorer(test_corpus)
-            result.show(scores,0)
+        if self.parameters['print results']:
+            result.show(scores, 0)
+
+        if self.parameters['save results']:
+            result.write(acc, scores, self.parameters['save results'])
 
 
     def test(self, test_corpus, test_mode=False):
@@ -169,7 +167,7 @@ class mcPerceptron(object):
         #    self.load_model(weights)
 
         for tweet in test_corpus:
-            prediction = self.__predict(tweet.get_features(), tweet, test_mode)
+            self._predict(tweet.get_features(), tweet, test_mode)
 
 
     def save_model(self, filename=None):
@@ -180,6 +178,13 @@ class mcPerceptron(object):
             w.write(json.dumps(self.weights) + '\n')
 
 
-    def load_model(self, weights):
-        with open(weights, 'r') as w:
+    def load_model(self):
+        with open(self.parameters['load model'], 'r') as w:
             self.weights = json.load(w)
+
+
+    def __debug_print_prediction(self, example, prediction):
+        print("true label: " + example.get_gold_label())
+        print("tweet text: " + example.get_text())
+        print("prediction: " + example.get_pred_label())
+        print(prediction)

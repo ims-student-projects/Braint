@@ -71,14 +71,15 @@ class Featurer():
         #        .format(','.join(invalid_arguments), self.__doc__))
 
         self.corpus = corpus
-        self.corpus_size = corpus.length()
+        self.corpus_size = corpus.length() if corpus else 0
         self.token_options = token_options
         self.score = parameters['score']
         self.ngrams = parameters['ngrams']
         self.count_pos = parameters['count pos']
         self.feature_labels = {'<BIAS>'}
         self.print_progressbar = parameters['print progressbar']
-        self.extract()
+        if corpus:
+            self.extract()
 
 
     def extract(self):
@@ -120,7 +121,7 @@ class Featurer():
         if 1 in self.ngrams:
             for token in tokens:
                 unigram = token[0]
-                features[unigram] = 1 if self.score=='binary' else features.get(unigram,0)+1
+                features[unigram]=1 if self.score=='binary' else features.get(unigram,0)+1
                 self.feature_labels.add(unigram)
 
         # If we need to extract multi-grams
@@ -152,7 +153,7 @@ class Featurer():
             tokens_with_pos = pos_tag(plain_tokens)
             for token in tokens_with_pos:
                 tag = '<' + token[1] + '>'
-                features[tag] = 1 if binary else features.get(tag,0)+1
+                features[tag]=1 if self.score=='binary' else features.get(tag,0)+1
                 self.feature_labels.add(tag)
 
         # Get frequency from counts
