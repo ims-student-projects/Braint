@@ -31,18 +31,18 @@ class Experiment(object):
                     'test data':'../data/test-text-labels.csv',
                     'epochs': 35,
                     'learning rate': 0.3,
-                    'ngrams': (2,3),
+                    'ngrams': (1,2,3),
                     'score': 'frequency',
                     'count pos': False,
-                    'load model': 'freq_23g_35e',
-                    #'load model': 'dummy_model',
-                    'save model': 'freq_23g_35e',
+                    #'load model': 'freq_1234g_35e',
+                    'load model': 'dummy_model',
+                    'save model': 'freq_123g_35e',
                     'save test predictions': None,
                     'save results': None,
                     'print results': True,
-                    'print plot': True,
+                    'print plot': False,
                     'print class distribution': False,
-                    'print progressbar': False
+                    'print progressbar': True
                     }
         token_options = {
                     'addit_mode':True,
@@ -247,6 +247,6 @@ class Experiment(object):
 
 if __name__ == "__main__":
     #exp1 = Experiment('train and test')
-    text = 'i have to be punched in the face by my loneliness before i reach out to someone'
-    exp = Experiment('test demo')
+    #text = 'i have to be punched in the face by my loneliness before i reach out to someone'
+    exp = Experiment('train')
     #exp.predict(text)

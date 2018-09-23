@@ -172,10 +172,8 @@ class mcPerceptron(object):
 
     def save_model(self, filename=None):
         f = filename if filename else self.parameters['save model']
-        with open(f + '_averaged', 'a') as w:
-            w.write(json.dumps(self.averaged_weights) + '\n')
         with open(f, 'a') as w:
-            w.write(json.dumps(self.weights) + '\n')
+            w.write(json.dumps(self.averaged_weights) + '\n')
 
 
     def load_model(self):
