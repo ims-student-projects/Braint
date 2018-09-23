@@ -1,9 +1,17 @@
+
+import logging
 from flask import Flask, session, redirect, url_for, escape, request, render_template
 from experiment import Experiment
 
-global app, exp, query
-query = None
+global app, exp, query, logger
 
+logger = logging.getLogger('log_demo')
+_h = logging.FileHandler('log_demo')
+_h.setFormatter(logging.Formatter('%(asctime)s:%(levelname)s:%(message)s'))
+logger.addHandler(_h)
+logger.setLevel(logging.INFO)
+
+query = None
 app = Flask(__name__)
 
 @app.route("/", methods=['GET', 'POST'])
@@ -16,9 +24,9 @@ def home():
         emotion = exp.predict(query)
         if emotion:
             result = '<center><br /> I think the emotion is: <b>{}</b>.<br />' \
-                '<br />Tweet text was:<br /><blockquote class="twitter-tweet"' \
-                ' data-partner="tweetdeck"><p dir="ltr">"{}"</p></blockquote>' \
+                '<br />Tweet text was:<br /><p dir="ltr"><i>{}</i></p>' \
                 '</center>'.format(emotion, query)
+            logger.info(' ({}) {}?\t{}'.format(request.remote_addr, emotion, query))
         else:
             result = '<center><br />Sorry, I don\'t know what emotion is ' \
                 'there <br /></center>'
