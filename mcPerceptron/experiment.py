@@ -1,6 +1,5 @@
 import sys
 from time import time
-from flask import Flask, session, redirect, url_for, escape, request, render_template
 
 sys.path.append('../')
 

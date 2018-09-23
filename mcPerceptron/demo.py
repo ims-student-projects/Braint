@@ -28,4 +28,4 @@ app.secret_key = 'A0Zr98j/3yX R~XHH!jmN]LWX/,?RT'
 if __name__ == "__main__":
     global exp
     exp = Experiment('test demo')
-    app.run(host='127.0.0.1',port=5000)
+    app.run(host='0.0.0.0',port=4200)
