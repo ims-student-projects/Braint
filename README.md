@@ -2,14 +2,14 @@
 
 # Introduction
 
-This repository contains two models that we built in the context of [WASSA-2018 Implicit Emotion Shared Task](http://implicitemotions.wassa2018.com/) and the course Teamlab at the University of Stuttgart.
+This repository contains two models that we built in the context of [WASSA-2018 Implicit Emotion Shared Task](http://implicitemotions.wassa2018.com/) and the course Teamlab at the University of Stuttgart. The methods and results of these models were described in our paper *[Fine-tuning Multiclass Perceptron For Implicit Emotion Classification](https://aclanthology.org/W18-6235/)*.
 
 Here we only give a general overview of the task, the data set and the results. For the documentation of each models, please navigate to the corresponding subfolder:
 
 * [mcPerceptron](mcPerceptron) (averaged multiclass perceptron)
 * [deepLearning](deepLearning) (bi-directional LSTM with attention)
 
-Our two models showed comparable results: F-Macro 0.63 and 0.64 for the multi-class Perceptron and the Deep Learning model respectively. We submitted the predictions of mcPerceptron model to IESA since at the time it performed (slightly) better than the DL model. Our [paper](http://185.203.116.239/publ/braint/braint_at_iest_2018.pdf) describing this model was accepted for the EMNLP 2018 conference.
+Our two models showed comparable results: F-Macro 0.63 and 0.64 for the multi-class Perceptron and the Deep Learning model respectively. We submitted the predictions of mcPerceptron model to IESA since at the time it performed (slightly) better than the DL model.
 
 
 # Task Description
@@ -52,9 +52,5 @@ The six emotions are more or less evenly distributed in the train data.
 
 # References
 
-* Vachagan Gratian, Marina Haid. 2018 [BrainT at IEST 2018: Fine-tuning Multiclass Perceptron For Implicit
-Emotion Classification](http://185.203.116.239/publ/braint/braint_at_iest_2018.pdf) (our paper submitted to EMNLP 2018, describes mcPerceptron)
-* Vachagan Gratian, Marina Haid, Kiflom Desta Abrha. 2018. [Implicit Emotion Classification:
-Complex Models vs. Complex Features](http://185.203.116.239/publ/braint/braint_final_report.pdf) (our report for the Teamlab course describing both models)
-* Roman Klinger, Orphée de Clerq, Saif M Mohammad,
-and Alexandra Balahur. 2018. [IEST: WASSA-2018 Implicit Emotions Shared Task](http://implicitemotions.wassa2018.com/paper/iest-description-2018.pdf)
+* Vachagan Gratian & Marina Haid. 2018. [BrainT at IEST 2018: Fine-tuning Multiclass Perceptron For Implicit Emotion Classification](https://aclanthology.org/W18-6235/).  In *Proceedings of the 9th Workshop on Computational Approaches to Subjectivity, Sentiment and Social Media Analysis*, pages 243–247, Brussels, Belgium. Association for Computational Linguistics.
+* Roman Klinger, Orphée de Clerq, Saif M Mohammad and Alexandra Balahur. 2018. [IEST: WASSA-2018 Implicit Emotions Shared Task](http://implicitemotions.wassa2018.com/paper/iest-description-2018.pdf)
